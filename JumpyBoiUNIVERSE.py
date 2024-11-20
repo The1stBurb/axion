@@ -40,6 +40,7 @@ class LevelManager:
         }, 20)
     
     def save_all(self, list_of_levels):
+        print("Saving...")
         i=0
         for level in list_of_levels:
             l_dict = level.level_dict
@@ -47,14 +48,68 @@ class LevelManager:
             l_height = l_dict["height"]
             l_list = "".join(l_dict["blocklist"])
             
-            level_file = open("levels/level-"+str(i)+".txt", "w")
+            level_file = open("levels/level-"+str(i)+".jbu", "w")
             level_file.write(str(l_width) + "," + str(l_height) + "," + l_list)
             level_file.close()
+        print("Levels saved!")
 
     def load_all(self):
         levels = []
-        
+
+        level_dir = "levels"
+        id=0
+        for file in os.listdir(level_dir):
+            lvl_file = open("levels/"+file, "r")
+            lvl_txt = lvl_file.read()
+            width = ""
+            for char in lvl_txt:
+                if char == ",":
+                    break
+                width += char
+            lvl_txt = lvl_txt[len(width)+1:]
+                
+            width = int(width)
+            height = ""
+            for char in lvl_txt:
+                if char == ",":
+                    break
+                height += char
+            lvl_txt = lvl_txt[len(height)+1:]
+            height = int(height)
+            lvl_list = list(lvl_txt)
+
+            levels.append(Level(
+                id,
+                {
+                    "width": width,
+                    "height": height,
+                    "blocklist": lvl_list
+                },
+                20
+                ))
+            
+            id+=1
+
+
         return levels
+
+    def add_level(self, level_idx):
+
+        while True:
+            try:
+                width = int(input("What should the width of the new level be?: ").strip())
+                break
+            except ValueError:
+                print("That's not a valid integer.")
+        
+        while True:
+            try:
+                height = int(input("What should the height of the new level be?: ").strip())
+                break
+            except ValueError:
+                print("That's not a valid integer.")
+        
+        return self.create_empty_level(len(level_idx), [width, height])
 
 class Level:
     def __init__(self, id, level_dict, block_size):
@@ -66,12 +121,13 @@ class Level:
         self.create_block_objects()
 
     def create_block_objects(self):
+        self.block_object_list = []
         width = self.level_dict["width"]
         for idx, block in enumerate(self.level_dict["blocklist"]):
             if block == "B":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
                 self.block_object_list.append(RegBlock(idx%width, idx//width, block_hitbox, self.block_size))
-            if block == "N":
+            elif block == "N":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
                 self.block_object_list.append(BounceBlock(idx%width, idx//width, block_hitbox, self.block_size))
     
@@ -89,7 +145,6 @@ class LevelEditor:
     def add_block(self, level):
         level.level_dict["blocklist"][self.tile_num] = self.brush
         level.create_block_objects()
-        return level
     
     def change_brush(self, new_brush):
         self.brush = new_brush
@@ -144,7 +199,10 @@ class Camera():
 def main():
     LEVELMANAGER = LevelManager()
 
-    levels = [LEVELMANAGER.create_empty_level(0, [40, 50])]
+    levels = LEVELMANAGER.load_all()
+    if levels == []:
+        levels.append(LEVELMANAGER.create_empty_level(30,30))
+    
 
     LEVELEDITOR = LevelEditor()
     blocksize = 20
@@ -164,11 +222,15 @@ def main():
                     sys.exit()
                 elif event.key == K_t:
                     LEVELMANAGER.save_all(levels)
+                elif event.key == K_a:
+                    levels.append(LEVELMANAGER.add_level())
                 # change brush
                 elif event.key == K_b:
                     LEVELEDITOR.change_brush("B")
                 elif event.key == K_n:
                     LEVELEDITOR.change_brush("N")
+                elif event.key == K_e:
+                    LEVELEDITOR.change_brush(" ")
         
         # then other stuff
 
@@ -195,7 +257,7 @@ def main():
         cursor_box.top -= LEVELEDITOR.camera.pos[1]
 
         if pygame.mouse.get_pressed()[0]:
-            if levels[LEVELEDITOR.level_idx].level_dict["blocklist"][LEVELEDITOR.tile_num] != "B":
+            if levels[LEVELEDITOR.level_idx].level_dict["blocklist"][LEVELEDITOR.tile_num] != LEVELEDITOR.brush:
                 LEVELEDITOR.add_block(levels[LEVELEDITOR.level_idx])
                 
 
@@ -206,6 +268,7 @@ def main():
 
         # Draw rectangles
         windowSurface.fill((255,255,255))
+
         for block in levels[LEVELEDITOR.level_idx].block_object_list:
             block.render()
 
@@ -213,6 +276,8 @@ def main():
             cursor_color = (0,0,0)
         elif LEVELEDITOR.brush == "N":
             cursor_color = (0,255,0)
+        elif LEVELEDITOR.brush == " ":
+            cursor_color = (255,255,255)
         pygame.draw.rect(windowSurface, cursor_color, cursor_box)
         # LAST
         pygame.display.update()
