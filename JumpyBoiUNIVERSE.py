@@ -20,6 +20,15 @@ Level, which has blocks in it
 Particle
 SoundManager
 '''
+
+
+class Game:
+    def __init__(self):
+        self.camera = Camera(None, 1)
+        self.level_idx = 0
+
+
+
 class LevelManager:
     def __init__(self):
         self.camera = Camera(None, None)
@@ -122,6 +131,7 @@ class Level:
         self.level_dict = level_dict
         self.block_object_list = []
         self.block_size = block_size
+        self.player_objects = []
 
         self.create_block_objects()
 
@@ -137,10 +147,14 @@ class Level:
                 self.block_object_list.append(BounceBlock(idx%width, idx//width, block_hitbox, self.block_size))
             elif block == "P":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
-                self.block_object_list.append(PlayerBlock(idx%width, idx//width, block_hitbox, self.block_size))
+                new_player = PlayerBlock(self.block_size*(idx%width), self.block_size*(idx//width), block_hitbox, self.block_size)
+                self.player_objects.append(new_player)
     
     def get_str_of_blocks(self):
         return "".join(self.level_dict["blocklist"])
+    
+    def get_player_objects(self):
+        return self.player_objects
 
 
 class LevelEditor:
@@ -179,17 +193,20 @@ class PlayerBlock(Block):
     def __init__(self, x, y, hitbox, blocksize):
         super().__init__(x, y, (80,80,255), hitbox, blocksize)
 
-        self.GRAVITY = -0.1
+        self.GRAVITY = 0.02
         self.WALKSPEED = 3
-        self.JUMPHEIGHT = 5
+        self.JUMPHEIGHT = 0.33
         self.TERMINALVELOCITY = 5
+
+        self.JUMPBUTTONS = [pygame.K_w, pygame.K_UP, pygame.K_SPACE]
         
         self.velocity = [0,0]
 
-    def main_loop(self, buttons_pressed):
+    def main_loop(self, buttons_pressed, level):
         self.walk(buttons_pressed)
         self.fall()
         self.jump(buttons_pressed)
+        self.update_pos(level)
 
     def fall(self):
         self.velocity[1] += self.GRAVITY
@@ -200,17 +217,37 @@ class PlayerBlock(Block):
         pass
 
     def jump(self, buttons_pressed):
-        pass
+        for button in self.JUMPBUTTONS:
+            if buttons_pressed[button]:
+                self.velocity[1] = -self.JUMPHEIGHT
 
     def detect_wall(self):
         pass
 
-    def detect_floor_ceiling(self):
-        pass
+    def detect_floor_ceiling(self, level):
+        print(self.x, self.y)
+        print(self.get_tile_at(self.x, self.y, level))
 
-    def update_pos(self):
+            
+
+    def update_pos(self, level):
         self.x += self.velocity[0]
+        self.detect_wall()
         self.y += self.velocity[1]
+        self.detect_floor_ceiling(level)
+
+
+    def pos_block(self, camera_pos):
+        self.hitbox.left = self.x - camera_pos[0]
+        self.hitbox.top = self.y - camera_pos[1]
+
+
+    @staticmethod
+    def get_tile_at(x, y, level):
+        tile_x = int(x/20)
+        tile_y = int(y/20)
+        tile_idx = tile_x + tile_y*level.level_dict["width"]
+        return level.level_dict["blocklist"][tile_idx]
 
 
 class RegBlock(Block):
@@ -245,6 +282,7 @@ def main():
     editing = True
 
     LEVELMANAGER = LevelManager()
+    GAME = Game()
 
     levels = LEVELMANAGER.load_all()
     if levels == []:
@@ -255,6 +293,8 @@ def main():
     blocksize = 20
 
     cursor_box = pygame.Rect(0, 0, 20, 20)
+    
+    players = []
 
     while True:
         # FIRST
@@ -295,7 +335,8 @@ def main():
                     elif event.key == K_q:
                         editing = False
             
-            # then other stuff
+            if players == []:
+                players = levels[LEVELEDITOR.level_idx].get_player_objects()
 
             # Get keys pressed and mouse position
             keys = pygame.key.get_pressed()
@@ -324,6 +365,8 @@ def main():
                     LEVELEDITOR.add_block(levels[LEVELEDITOR.level_idx])
                     
 
+            for player in players:
+                player.pos_block(LEVELEDITOR.camera.pos)
 
             # Set positions of rectangles
             for block in levels[LEVELEDITOR.level_idx].block_object_list:
@@ -334,6 +377,9 @@ def main():
 
             for block in levels[LEVELEDITOR.level_idx].block_object_list:
                 block.render()
+
+            for player in players:
+                player.render()
 
             if LEVELEDITOR.brush == "B":
                 cursor_color = (0,0,0)
@@ -348,22 +394,45 @@ def main():
             pygame.display.update()
             mainClock.tick(60)
 
+
+
+
         else: # Not in editing mode?
-            players = LEVELMANAGER.get_players()
+
+
+
+
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == KEYDOWN:
+                    if event.key == K_ESCAPE:
+                        pygame.quit()
+                        sys.exit()
+
+            if players == []:
+                players = levels[GAME.level_idx].get_player_objects()
             
+            keys = pygame.key.get_pressed()
 
             for player in players:
-                pass
+                player.main_loop(keys, levels[GAME.level_idx])
 
+            for player in players:
+                player.pos_block(GAME.camera.pos)
 
-            for block in levels[LEVELEDITOR.level_idx].block_object_list:
-                block.pos_block(LEVELEDITOR.camera.pos)
+            for block in levels[GAME.level_idx].block_object_list:
+                block.pos_block(GAME.camera.pos)
 
             # Draw rectangles
             windowSurface.fill((255,255,255))
 
             for block in levels[LEVELEDITOR.level_idx].block_object_list:
                 block.render()
+
+            for player in players:
+                player.render()
 
 
             # LAST
