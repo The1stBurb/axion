@@ -233,7 +233,7 @@ class PlayerBlock(Block):
                 self.velocity[1] = -self.JUMPHEIGHT
 
     def detect_wall(self, level):
-        if self.get_tile_at(self.x, self.y, level) == "B" or self.get_tile_at(self.x, self.y+19, level) == "B" or self.get_tile_at(self.x+20, self.y, level) == "B" or self.get_tile_at(self.x+20, self.y+19, level) == "B":
+        if self.get_tile_at(self.x, self.y, level) == "B" or self.get_tile_at(self.x, self.y+19, level) == "B" or self.get_tile_at(self.x+19, self.y, level) == "B" or self.get_tile_at(self.x+19, self.y+19, level) == "B":
             if self.velocity[0] > 0:
                 self.x -= (self.x % 20)
             else:
@@ -242,7 +242,7 @@ class PlayerBlock(Block):
 
 
     def detect_floor_ceiling(self, level):
-        if self.get_tile_at(self.x, self.y, level) == "B" or self.get_tile_at(self.x, self.y+20, level) == "B" or self.get_tile_at(self.x+20, self.y, level) == "B" or self.get_tile_at(self.x+20, self.y+20, level) == "B":
+        if self.get_tile_at(self.x, self.y, level) == "B" or self.get_tile_at(self.x, self.y+20, level) == "B" or self.get_tile_at(self.x+19, self.y, level) == "B" or self.get_tile_at(self.x+19, self.y+20, level) == "B":
             if self.velocity[1] > 0:
                 self.y -= (self.y % 20)
                 self.airtime = 0
