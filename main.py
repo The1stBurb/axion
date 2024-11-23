@@ -88,6 +88,7 @@ def main():
                 LEVELEDITOR.camera.move_camera([LEVELEDITOR.camera.speed, 0])
 
             mouse_pos = [raw_mouse_pos[0]+LEVELEDITOR.camera.pos[0], raw_mouse_pos[1]+LEVELEDITOR.camera.pos[1]]
+
             LEVELEDITOR.tile_num = mouse_pos[0] // blocksize + (mouse_pos[1] // blocksize) * levels[LEVELEDITOR.level_idx].level_dict["width"]
 
             cursor_box.left = LEVELEDITOR.tile_num % levels[LEVELEDITOR.level_idx].level_dict["width"] * blocksize
@@ -98,6 +99,7 @@ def main():
             if pygame.mouse.get_pressed()[0]:
                 if levels[LEVELEDITOR.level_idx].level_dict["blocklist"][LEVELEDITOR.tile_num] != LEVELEDITOR.brush:
                     LEVELEDITOR.add_block(levels[LEVELEDITOR.level_idx])
+                    players = levels[LEVELEDITOR.level_idx].get_player_objects()
                     
 
             for player in players:
@@ -164,10 +166,10 @@ def main():
             windowSurface.fill((255,255,255))
 
             for block in levels[LEVELEDITOR.level_idx].block_object_list:
-                block.render()
+                block.render(windowSurface)
 
             for player in players:
-                player.render()
+                player.render(windowSurface)
 
 
             # LAST

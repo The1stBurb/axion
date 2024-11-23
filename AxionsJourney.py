@@ -129,6 +129,7 @@ class Level:
 
     def create_block_objects(self):
         self.block_object_list = []
+        self.player_objects = []
         width = self.level_dict["width"]
         for idx, block in enumerate(self.level_dict["blocklist"]):
             if block == "B":
@@ -185,18 +186,23 @@ class PlayerBlock(Block):
     def __init__(self, x, y, hitbox, blocksize):
         super().__init__(x, y, (80,80,255), hitbox, blocksize)
 
-        self.GRAVITY = 0.02
-        self.WALKSPEED = 3
-        self.JUMPHEIGHT = 0.33
-        self.TERMINALVELOCITY = 5
+        self.GRAVITY = 0.25
+        self.WALKSPEED = 1.5
+        self.JUMPHEIGHT = 5.5
+        self.TERMINALVELOCITY = 10
+        self.COYOTETIME = 4
+        self.FRICTION = 0.7
 
-        self.JUMPBUTTONS = [pygame.K_w, pygame.K_UP, pygame.K_SPACE]
+        self.JUMPBUTTONS = [K_w, K_UP, K_SPACE]
+        self.LEFTBUTTONS = [K_a, K_LEFT]
+        self.RIGHTBUTTONS = [K_d, K_RIGHT]
         
         self.velocity = [0,0]
+        self.airtime = 0
 
     def main_loop(self, buttons_pressed, level):
-        self.walk(buttons_pressed)
         self.fall()
+        self.walk(buttons_pressed)
         self.jump(buttons_pressed)
         self.update_pos(level)
 
@@ -204,27 +210,51 @@ class PlayerBlock(Block):
         self.velocity[1] += self.GRAVITY
         if self.velocity[1] >= self.TERMINALVELOCITY:
             self.velocity[1] = self.TERMINALVELOCITY
+        self.airtime += 1
 
     def walk(self, buttons_pressed):
-        pass
+        key_walk = 0
+        for button in self.LEFTBUTTONS:
+            if buttons_pressed[button]:
+                key_walk -= 1
+                break
+        for button in self.RIGHTBUTTONS:
+            if buttons_pressed[button]:
+                key_walk += 1
+                break
+
+        self.velocity[0] += key_walk * self.WALKSPEED
+        self.velocity[0] *= self.FRICTION
+        
 
     def jump(self, buttons_pressed):
         for button in self.JUMPBUTTONS:
-            if buttons_pressed[button]:
+            if buttons_pressed[button] and self.airtime < self.COYOTETIME:
                 self.velocity[1] = -self.JUMPHEIGHT
 
-    def detect_wall(self):
-        pass
+    def detect_wall(self, level):
+        if self.get_tile_at(self.x, self.y, level) == "B" or self.get_tile_at(self.x, self.y+19, level) == "B" or self.get_tile_at(self.x+20, self.y, level) == "B" or self.get_tile_at(self.x+20, self.y+19, level) == "B":
+            if self.velocity[0] > 0:
+                self.x -= (self.x % 20)
+            else:
+                self.x += 20-(self.x % 20)
+            self.velocity[0] = 0
+
 
     def detect_floor_ceiling(self, level):
-        print(self.x, self.y)
-        print(self.get_tile_at(self.x, self.y, level))
-
+        if self.get_tile_at(self.x, self.y, level) == "B" or self.get_tile_at(self.x, self.y+20, level) == "B" or self.get_tile_at(self.x+20, self.y, level) == "B" or self.get_tile_at(self.x+20, self.y+20, level) == "B":
+            if self.velocity[1] > 0:
+                self.y -= (self.y % 20)
+                self.airtime = 0
+            else:
+                self.y += 20-(self.y % 20)
+            self.velocity[1] = 0
             
 
+            
     def update_pos(self, level):
         self.x += self.velocity[0]
-        self.detect_wall()
+        self.detect_wall(level)
         self.y += self.velocity[1]
         self.detect_floor_ceiling(level)
 
