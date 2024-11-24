@@ -19,6 +19,11 @@ class Game:
         self.camera = Camera(None, 1)
         self.level_idx = 0
 
+    def move_camera_to_player(self, x, y, boundaries):
+        move_x = (x - self.camera.pos[0] - 300) / 10
+        move_y = (y - self.camera.pos[1] - 300) / 10
+        self.camera.move_camera([move_x, move_y], boundaries)
+
 
 
 class LevelManager:
@@ -142,12 +147,18 @@ class Level:
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
                 new_player = PlayerBlock(self.block_size*(idx%width), self.block_size*(idx//width), block_hitbox, self.block_size)
                 self.player_objects.append(new_player)
+            elif block == "C":
+                block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
+                self.block_object_list.append(CheckpointBlock(idx%width, idx//width, block_hitbox, self.block_size))
     
     def get_str_of_blocks(self):
         return "".join(self.level_dict["blocklist"])
     
-    def get_player_objects(self):
-        return self.player_objects
+    def get_player_object(self):
+        if self.player_objects != []:
+            return self.player_objects[0]
+        else:
+            return None
 
 
 class LevelEditor:
@@ -190,15 +201,20 @@ class PlayerBlock(Block):
         self.WALKSPEED = 1.5
         self.JUMPHEIGHT = 5.5
         self.TERMINALVELOCITY = 10
-        self.COYOTETIME = 4
+        self.COYOTETIME = 6
         self.FRICTION = 0.7
 
         self.JUMPBUTTONS = [K_w, K_UP, K_SPACE]
         self.LEFTBUTTONS = [K_a, K_LEFT]
         self.RIGHTBUTTONS = [K_d, K_RIGHT]
         
+        self.released_jump = True
         self.velocity = [0,0]
         self.airtime = 0
+        self.airjumps = 1
+
+        self.checkpoint_x = x
+        self.checkpoint_y = y
 
     def main_loop(self, buttons_pressed, level):
         self.fall()
@@ -229,8 +245,17 @@ class PlayerBlock(Block):
 
     def jump(self, buttons_pressed):
         for button in self.JUMPBUTTONS:
-            if buttons_pressed[button] and self.airtime < self.COYOTETIME:
-                self.velocity[1] = -self.JUMPHEIGHT
+            if buttons_pressed[button]:
+                if self.airtime < self.COYOTETIME:
+                    self.velocity[1] = -self.JUMPHEIGHT
+                    self.released_jump = False
+                elif self.airjumps > 0 and self.released_jump:
+                    self.velocity[1] = -self.JUMPHEIGHT
+                    self.airjumps -= 1
+                    self.released_jump = False
+                break
+        else:
+            self.released_jump = True
 
     def detect_wall(self, level):
         if self.get_tile_at(self.x, self.y, level) == "B" or self.get_tile_at(self.x, self.y+19, level) == "B" or self.get_tile_at(self.x+19, self.y, level) == "B" or self.get_tile_at(self.x+19, self.y+19, level) == "B":
@@ -246,6 +271,7 @@ class PlayerBlock(Block):
             if self.velocity[1] > 0:
                 self.y -= (self.y % 20)
                 self.airtime = 0
+                self.airjumps = 1
             else:
                 self.y += 20-(self.y % 20)
             self.velocity[1] = 0
@@ -289,6 +315,19 @@ class WaterBlock(Block):
 class ExitBlock(Block):
     pass
 
+class CheckpointBlock(Block):
+    def __init__(self, x, y, hitbox, blocksize):
+        super().__init__(x, y, (200, 120, 0), hitbox, blocksize)
+        self.claimed = False
+        self.color = [200, 120, 0]
+
+    def claim(self, player):
+        self.color = [250, 150, 0]
+        player.checkpoint_x = self.x
+        player.checkpoint_y = self.y
+
+    
+
 class Camera():
     def __init__(self, move_buttons, speed):
         self.pos = [0, 0]
@@ -296,6 +335,14 @@ class Camera():
         self.speed = speed
 
 
-    def move_camera(self, movement):
+    def move_camera(self, movement, boundaries):
         self.pos[0] += movement[0]
         self.pos[1] += movement[1]
+        if self.pos[0] < 0:
+            self.pos[0] = 0
+        if self.pos[1] < 0:
+            self.pos[1] = 0
+        if self.pos[0] > boundaries[0] - 600:
+            self.pos[0] = boundaries[0] - 600
+        if self.pos[1] > boundaries[1] - 600:
+            self.pos[1] = boundaries[1] - 600

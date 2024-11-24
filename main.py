@@ -27,7 +27,7 @@ def main():
 
     cursor_box = pygame.Rect(0, 0, 20, 20)
     
-    players = []
+    player = None
 
     while True:
         # FIRST
@@ -64,28 +64,33 @@ def main():
                         LEVELEDITOR.change_brush(" ")
                     elif event.key == K_p:
                         LEVELEDITOR.change_brush("P")
+                    elif event.key == K_c:
+                        LEVELEDITOR.change_brush("C")
 
                     elif event.key == K_q:
                         editing = False
             
 
 
-            if players == []:
-                players = levels[LEVELEDITOR.level_idx].get_player_objects()
+            if player == None:
+                player = levels[LEVELEDITOR.level_idx].get_player_object()
 
             # Get keys pressed and mouse position
             keys = pygame.key.get_pressed()
             raw_mouse_pos = pygame.mouse.get_pos()
             
             # Get camera movements
+
+            level_width = levels[LEVELEDITOR.level_idx].level_dict["width"] * 20
+            level_height = levels[LEVELEDITOR.level_idx].level_dict["height"] * 20
             if keys[LEVELEDITOR.camera.move_buttons["up"]]:
-                LEVELEDITOR.camera.move_camera([0, -LEVELEDITOR.camera.speed])
+                LEVELEDITOR.camera.move_camera([0, -LEVELEDITOR.camera.speed], [level_width, level_height])
             if keys[LEVELEDITOR.camera.move_buttons["down"]]:
-                LEVELEDITOR.camera.move_camera([0, LEVELEDITOR.camera.speed])
+                LEVELEDITOR.camera.move_camera([0, LEVELEDITOR.camera.speed], [level_width, level_height])
             if keys[LEVELEDITOR.camera.move_buttons["left"]]:
-                LEVELEDITOR.camera.move_camera([-LEVELEDITOR.camera.speed, 0])
+                LEVELEDITOR.camera.move_camera([-LEVELEDITOR.camera.speed, 0], [level_width, level_height])
             if keys[LEVELEDITOR.camera.move_buttons["right"]]:
-                LEVELEDITOR.camera.move_camera([LEVELEDITOR.camera.speed, 0])
+                LEVELEDITOR.camera.move_camera([LEVELEDITOR.camera.speed, 0], [level_width, level_height])
 
             mouse_pos = [raw_mouse_pos[0]+LEVELEDITOR.camera.pos[0], raw_mouse_pos[1]+LEVELEDITOR.camera.pos[1]]
 
@@ -99,11 +104,12 @@ def main():
             if pygame.mouse.get_pressed()[0]:
                 if levels[LEVELEDITOR.level_idx].level_dict["blocklist"][LEVELEDITOR.tile_num] != LEVELEDITOR.brush:
                     LEVELEDITOR.add_block(levels[LEVELEDITOR.level_idx])
-                    players = levels[LEVELEDITOR.level_idx].get_player_objects()
+                    player = levels[LEVELEDITOR.level_idx].get_player_object()
                     
-
-            for player in players:
+            try:
                 player.pos_block(LEVELEDITOR.camera.pos)
+            except:
+                pass
 
             # Set positions of rectangles
             for block in levels[LEVELEDITOR.level_idx].block_object_list:
@@ -115,8 +121,10 @@ def main():
             for block in levels[LEVELEDITOR.level_idx].block_object_list:
                 block.render(windowSurface)
 
-            for player in players:
+            try:
                 player.render(windowSurface)
+            except:
+                pass
 
             if LEVELEDITOR.brush == "B":
                 cursor_color = (0,0,0)
@@ -126,6 +134,8 @@ def main():
                 cursor_color = (255,255,255)
             elif LEVELEDITOR.brush == "P":
                 cursor_color = (80,80,255)
+            elif LEVELEDITOR.brush == "C":
+                cursor_color = (200,120,0)
             pygame.draw.rect(windowSurface, cursor_color, cursor_box)
             # LAST
             pygame.display.update()
@@ -147,17 +157,21 @@ def main():
                     if event.key == K_ESCAPE:
                         pygame.quit()
                         sys.exit()
+                    if event.key == K_q:
+                        editing = True
 
-            if players == []:
-                players = levels[GAME.level_idx].get_player_objects()
+            if player == None:
+                player = levels[GAME.level_idx].get_player_object()
             
             keys = pygame.key.get_pressed()
 
-            for player in players:
-                player.main_loop(keys, levels[GAME.level_idx])
 
-            for player in players:
-                player.pos_block(GAME.camera.pos)
+            player.main_loop(keys, levels[GAME.level_idx])
+            level_width = levels[GAME.level_idx].level_dict["width"] * 20
+            level_height = levels[GAME.level_idx].level_dict["height"] * 20
+            GAME.move_camera_to_player(player.x+20, player.y+20, [level_width, level_height])
+
+            player.pos_block(GAME.camera.pos)
 
             for block in levels[GAME.level_idx].block_object_list:
                 block.pos_block(GAME.camera.pos)
@@ -168,8 +182,7 @@ def main():
             for block in levels[LEVELEDITOR.level_idx].block_object_list:
                 block.render(windowSurface)
 
-            for player in players:
-                player.render(windowSurface)
+            player.render(windowSurface)
 
 
             # LAST
