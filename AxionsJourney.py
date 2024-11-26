@@ -141,9 +141,6 @@ class Level:
             if block == "B":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
                 self.block_object_list.append(RegBlock(idx%width, idx//width, block_hitbox, self.block_size))
-            elif block == "N":
-                block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
-                self.block_object_list.append(BounceBlock(idx%width, idx//width, block_hitbox, self.block_size))
             elif block == "P":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
                 new_player = PlayerBlock(self.block_size*(idx%width), self.block_size*(idx//width), block_hitbox, self.block_size)
@@ -153,6 +150,13 @@ class Level:
                 checkpoint = CheckpointBlock(idx%width, idx//width, block_hitbox, self.block_size)
                 self.block_object_list.append(checkpoint)
                 self.checkpoints.append(checkpoint)
+            elif block == "J":
+                block_hitbox = pygame.Rect(0, 0, 10, 10)
+                self.block_object_list.append(AirJumpBlock(idx%width, idx//width, block_hitbox))
+            elif block == "X":
+                block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
+                self.block_object_list.append(DangerBlock(idx%width, idx//width, block_hitbox, self.block_size))
+            
     
     def get_str_of_blocks(self):
         return "".join(self.level_dict["blocklist"])
@@ -311,12 +315,9 @@ class RegBlock(Block):
     def __init__(self, x, y, hitbox, blocksize):
         super().__init__(x, y, (0,0,0), hitbox, blocksize)
 
-class LaserBlock(Block):
-    pass
-
-class BounceBlock(Block):
+class DangerBlock(Block):
     def __init__(self, x, y, hitbox, blocksize):
-        super().__init__(x, y, (0,255,0), hitbox, blocksize)
+        super().__init__(x, y, (255,20,71), hitbox, blocksize)
 
 class WaterBlock(Block):
     pass
@@ -329,22 +330,60 @@ class CheckpointBlock(Block):
         super().__init__(x, y, (0, 0, 0), hitbox, blocksize)
         self.claimed = False
         self.color = [0, 100, 0]
+        self.buffer = 0
 
-    def claim(self, player):
+    def claim(self, player, event):
+        pygame.event.post(pygame.event.Event(event))
         self.color = [10, 255, 50]
         player.checkpoint_x = self.p_x
         player.checkpoint_y = self.p_y
+        self.buffer = 2
 
-    def check_touching_player(self, player):
+    def declaim(self):
+        if self.buffer == 0:
+            self.color = [0, 100, 0]
+            self.claimed = False
+
+    def check_touching_player(self, player, event):
         self.get_pixel_coords()
+        if not self.buffer == 0:
+            self.buffer -= 1
         if (player.x < self.p_x + 19 and player.x > self.p_x - 19) and (player.y < self.p_y + 19 and player.y > self.p_y - 19):
             if not self.claimed:
-                self.claim(player)
+                self.claim(player, event)
     
     def get_pixel_coords(self):
         self.p_x = self.x * 20
         self.p_y = self.y * 20
     
+class AirJumpBlock(Block):
+    def __init__(self, x, y, hitbox):
+        super().__init__(x, y, (255,175,0), hitbox, 10)
+        self.claimed_frames = 0
+    
+    def pos_block(self, camera_pos):
+        self.hitbox.left = self.x*20+5 - camera_pos[0]
+        self.hitbox.top = self.y*20+5 - camera_pos[1]
+    
+    def render(self, windowSurface):
+        if self.claimed_frames > 0:
+            self.claimed_frames -= 1
+        else:
+            pygame.draw.rect(windowSurface, self.color, self.hitbox)
+
+    def claim(self, player):
+        player.airjumps += 1
+        self.claimed_frames = 120
+    
+    def check_touching_player(self, player):
+        self.get_pixel_coords()
+        if (player.x < self.p_x + 9 and player.x > self.p_x - 19) and (player.y < self.p_y + 9 and player.y > self.p_y - 19):
+            if self.claimed_frames == 0:
+                self.claim(player)
+
+    def get_pixel_coords(self):
+        self.p_x = self.x * 20 + 5
+        self.p_y = self.y * 20 + 5
 
 class Camera():
     def __init__(self, move_buttons, speed):

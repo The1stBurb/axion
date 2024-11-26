@@ -29,6 +29,9 @@ def main():
     
     player = None
 
+    CHECKPOINT = pygame.USEREVENT + 1
+
+
     while True:
         # FIRST
         if editing:
@@ -58,14 +61,14 @@ def main():
                     # change brush
                     elif event.key == K_b:
                         LEVELEDITOR.change_brush("B")
-                    elif event.key == K_n:
-                        LEVELEDITOR.change_brush("N")
                     elif event.key == K_e:
                         LEVELEDITOR.change_brush(" ")
                     elif event.key == K_p:
                         LEVELEDITOR.change_brush("P")
                     elif event.key == K_c:
                         LEVELEDITOR.change_brush("C")
+                    elif event.key == K_v:
+                        LEVELEDITOR.change_brush("J")
 
                     elif event.key == K_q:
                         editing = False
@@ -128,14 +131,14 @@ def main():
 
             if LEVELEDITOR.brush == "B":
                 cursor_color = (0,0,0)
-            elif LEVELEDITOR.brush == "N":
-                cursor_color = (0,255,0)
             elif LEVELEDITOR.brush == " ":
                 cursor_color = (255,255,255)
             elif LEVELEDITOR.brush == "P":
                 cursor_color = (80,80,255)
             elif LEVELEDITOR.brush == "C":
                 cursor_color = (0,100,0)
+            elif LEVELEDITOR.brush == "J":
+                cursor_color = (255,175,0)
             pygame.draw.rect(windowSurface, cursor_color, cursor_box)
             # LAST
             pygame.display.update()
@@ -162,6 +165,12 @@ def main():
                     if event.key == K_r:
                         player.reset_to_checkpoint()
 
+                elif event.type == CHECKPOINT:
+                    for block in levels[GAME.level_idx].block_object_list:
+                        if isinstance(block, CheckpointBlock):
+                            block.declaim()
+
+
             if player == None:
                 player = levels[GAME.level_idx].get_player_object()
             
@@ -169,8 +178,11 @@ def main():
 
 
             player.main_loop(keys, levels[GAME.level_idx])
-            for checkpoint in levels[GAME.level_idx].checkpoints:
-                checkpoint.check_touching_player(player)
+            for block in levels[GAME.level_idx].block_object_list:
+                if isinstance(block, CheckpointBlock):
+                    block.check_touching_player(player, CHECKPOINT)
+                if isinstance(block, AirJumpBlock):
+                    block.check_touching_player(player)
 
 
             level_width = levels[GAME.level_idx].level_dict["width"] * 20
