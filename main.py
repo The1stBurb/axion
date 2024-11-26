@@ -135,7 +135,7 @@ def main():
             elif LEVELEDITOR.brush == "P":
                 cursor_color = (80,80,255)
             elif LEVELEDITOR.brush == "C":
-                cursor_color = (200,120,0)
+                cursor_color = (0,100,0)
             pygame.draw.rect(windowSurface, cursor_color, cursor_box)
             # LAST
             pygame.display.update()
@@ -159,6 +159,8 @@ def main():
                         sys.exit()
                     if event.key == K_q:
                         editing = True
+                    if event.key == K_r:
+                        player.reset_to_checkpoint()
 
             if player == None:
                 player = levels[GAME.level_idx].get_player_object()
@@ -167,6 +169,10 @@ def main():
 
 
             player.main_loop(keys, levels[GAME.level_idx])
+            for checkpoint in levels[GAME.level_idx].checkpoints:
+                checkpoint.check_touching_player(player)
+
+
             level_width = levels[GAME.level_idx].level_dict["width"] * 20
             level_height = levels[GAME.level_idx].level_dict["height"] * 20
             GAME.move_camera_to_player(player.x+20, player.y+20, [level_width, level_height])

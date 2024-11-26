@@ -129,6 +129,7 @@ class Level:
         self.block_object_list = []
         self.block_size = block_size
         self.player_objects = []
+        self.checkpoints = []
 
         self.create_block_objects()
 
@@ -149,7 +150,9 @@ class Level:
                 self.player_objects.append(new_player)
             elif block == "C":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
-                self.block_object_list.append(CheckpointBlock(idx%width, idx//width, block_hitbox, self.block_size))
+                checkpoint = CheckpointBlock(idx%width, idx//width, block_hitbox, self.block_size)
+                self.block_object_list.append(checkpoint)
+                self.checkpoints.append(checkpoint)
     
     def get_str_of_blocks(self):
         return "".join(self.level_dict["blocklist"])
@@ -289,6 +292,12 @@ class PlayerBlock(Block):
         self.hitbox.left = self.x - camera_pos[0]
         self.hitbox.top = self.y - camera_pos[1]
 
+    def reset_to_checkpoint(self):
+        self.x = self.checkpoint_x
+        self.y = self.checkpoint_y
+        self.airtime = 0
+        self.airjumps = 1
+        self.velocity = [0, 0]
 
     @staticmethod
     def get_tile_at(x, y, level):
@@ -317,15 +326,24 @@ class ExitBlock(Block):
 
 class CheckpointBlock(Block):
     def __init__(self, x, y, hitbox, blocksize):
-        super().__init__(x, y, (200, 120, 0), hitbox, blocksize)
+        super().__init__(x, y, (0, 0, 0), hitbox, blocksize)
         self.claimed = False
-        self.color = [200, 120, 0]
+        self.color = [0, 100, 0]
 
     def claim(self, player):
-        self.color = [250, 150, 0]
-        player.checkpoint_x = self.x
-        player.checkpoint_y = self.y
+        self.color = [10, 255, 50]
+        player.checkpoint_x = self.p_x
+        player.checkpoint_y = self.p_y
 
+    def check_touching_player(self, player):
+        self.get_pixel_coords()
+        if (player.x < self.p_x + 19 and player.x > self.p_x - 19) and (player.y < self.p_y + 19 and player.y > self.p_y - 19):
+            if not self.claimed:
+                self.claim(player)
+    
+    def get_pixel_coords(self):
+        self.p_x = self.x * 20
+        self.p_y = self.y * 20
     
 
 class Camera():
