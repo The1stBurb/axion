@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 import os, sys
 from AxionsJourney import *
+import random
 
 mainClock = pygame.time.Clock()
 pygame.init()
@@ -30,6 +31,8 @@ def main():
     player = None
 
     CHECKPOINT = pygame.USEREVENT + 1
+    DEATH = pygame.USEREVENT + 2
+    FINISH = pygame.USEREVENT + 3
 
 
     while True:
@@ -69,6 +72,10 @@ def main():
                         LEVELEDITOR.change_brush("C")
                     elif event.key == K_v:
                         LEVELEDITOR.change_brush("J")
+                    elif event.key == K_x:
+                        LEVELEDITOR.change_brush("X")
+                    elif event.key == K_z:
+                        LEVELEDITOR.change_brush("Z")
 
                     elif event.key == K_q:
                         editing = False
@@ -129,6 +136,7 @@ def main():
             except:
                 pass
 
+            # Cursor
             if LEVELEDITOR.brush == "B":
                 cursor_color = (0,0,0)
             elif LEVELEDITOR.brush == " ":
@@ -139,7 +147,14 @@ def main():
                 cursor_color = (0,100,0)
             elif LEVELEDITOR.brush == "J":
                 cursor_color = (255,175,0)
+            elif LEVELEDITOR.brush == "X":
+                cursor_color = (255,20,71)
+            elif LEVELEDITOR.brush == "Z":
+                cursor_color = (255,200,100)
+
             pygame.draw.rect(windowSurface, cursor_color, cursor_box)
+
+
             # LAST
             pygame.display.update()
             mainClock.tick(60)
@@ -170,19 +185,35 @@ def main():
                         if isinstance(block, CheckpointBlock):
                             block.declaim()
 
+                elif event.type == DEATH:
+                    print("death anim or smthn")
+
+                elif event.type == FINISH:
+                    GAME.level_idx += 1
+                    player = None
+                    continue
+
 
             if player == None:
                 player = levels[GAME.level_idx].get_player_object()
             
             keys = pygame.key.get_pressed()
 
+            if player.dead == 0:
+                player.main_loop(keys, levels[GAME.level_idx], DEATH, FINISH)
+            else:
+                player.dead -= 1
+                if player.dead == 0:
+                    player.reset_to_checkpoint()
 
-            player.main_loop(keys, levels[GAME.level_idx])
+
             for block in levels[GAME.level_idx].block_object_list:
                 if isinstance(block, CheckpointBlock):
                     block.check_touching_player(player, CHECKPOINT)
                 if isinstance(block, AirJumpBlock):
                     block.check_touching_player(player)
+                if isinstance(block, ExitBlock):
+                    block.change_color()
 
 
             level_width = levels[GAME.level_idx].level_dict["width"] * 20
@@ -197,10 +228,11 @@ def main():
             # Draw rectangles
             windowSurface.fill((255,255,255))
 
-            for block in levels[LEVELEDITOR.level_idx].block_object_list:
+            for block in levels[GAME.level_idx].block_object_list:
                 block.render(windowSurface)
 
-            player.render(windowSurface)
+            if player.dead == 0:
+                player.render(windowSurface)
 
 
             # LAST

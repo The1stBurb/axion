@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 import os, sys
+import random
 
 # Make a UML diagram of all the classes
 # Classes like:
@@ -156,6 +157,9 @@ class Level:
             elif block == "X":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
                 self.block_object_list.append(DangerBlock(idx%width, idx//width, block_hitbox, self.block_size))
+            elif block == "Z":
+                block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
+                self.block_object_list.append(ExitBlock(idx%width, idx//width, block_hitbox, self.block_size))
             
     
     def get_str_of_blocks(self):
@@ -181,6 +185,8 @@ class LevelEditor:
     
     def change_brush(self, new_brush):
         self.brush = new_brush
+
+
 
 
 class Block:
@@ -222,12 +228,16 @@ class PlayerBlock(Block):
 
         self.checkpoint_x = x
         self.checkpoint_y = y
+        
+        self.dead = 0
 
-    def main_loop(self, buttons_pressed, level):
+    def main_loop(self, buttons_pressed, level, death_event, finish_event):
         self.fall()
         self.walk(buttons_pressed)
         self.jump(buttons_pressed)
         self.update_pos(level)
+        self.check_touching_danger(level, death_event)
+        self.check_exit(level, finish_event)
 
     def fall(self):
         self.velocity[1] += self.GRAVITY
@@ -303,6 +313,15 @@ class PlayerBlock(Block):
         self.airjumps = 1
         self.velocity = [0, 0]
 
+    def check_touching_danger(self, level, event):
+        if self.get_tile_at(self.x, self.y, level) == "X" or self.get_tile_at(self.x, self.y+19, level) == "X" or self.get_tile_at(self.x+19, self.y, level) == "X" or self.get_tile_at(self.x+19, self.y+19, level) == "X":
+            pygame.event.post(pygame.event.Event(event))
+            self.dead = 120
+
+    def check_exit(self, level, event):
+        if self.get_tile_at(self.x, self.y, level) == "Z" or self.get_tile_at(self.x, self.y+19, level) == "Z" or self.get_tile_at(self.x+19, self.y, level) == "Z" or self.get_tile_at(self.x+19, self.y+19, level) == "Z":
+            pygame.event.post(pygame.event.Event(event))
+
     @staticmethod
     def get_tile_at(x, y, level):
         tile_x = int(x/20)
@@ -319,12 +338,29 @@ class DangerBlock(Block):
     def __init__(self, x, y, hitbox, blocksize):
         super().__init__(x, y, (255,20,71), hitbox, blocksize)
 
-class WaterBlock(Block):
-    pass
-
 class ExitBlock(Block):
-    pass
+    def __init__(self, x, y, hitbox, blocksize):
+        super().__init__(x, y, [255, 0, 0], hitbox, blocksize)
 
+    def change_color(self):
+        if self.color[0] > 0 and self.color[1] < 255 and self.color[2] == 0:
+            self.color[1] += 5
+
+        elif self.color[0] > 0 and self.color[1] == 255:
+            self.color[0] -= 5
+
+        elif self.color[1] > 0 and self.color[2] < 255:
+            self.color[2] += 5
+
+        elif self.color[1] > 0 and self.color[2] == 255:
+            self.color[1] -= 5
+
+        elif self.color[2] > 0 and self.color[0] < 255:
+            self.color[0] += 5
+
+        elif self.color[2] > 0 and self.color[0] == 255:
+            self.color[2] -= 5
+    
 class CheckpointBlock(Block):
     def __init__(self, x, y, hitbox, blocksize):
         super().__init__(x, y, (0, 0, 0), hitbox, blocksize)
@@ -384,6 +420,32 @@ class AirJumpBlock(Block):
     def get_pixel_coords(self):
         self.p_x = self.x * 20 + 5
         self.p_y = self.y * 20 + 5
+
+
+class Particle:
+    def __init__(self, x, y, color, type):
+        self.type = type
+        self.x = x
+        self.y = y
+        if self.type == "death":
+            self.velocity = [random.random()*10-5, random.random()*10-5]
+            self.color = [255, 0, 0]
+            self.gravity = 0.25
+            self.hitbox = pygame.rect.Rect(0, 0, 3, 3)
+    
+    def update(self):
+        if self.type == "death":
+            self.x += self.velocity[0]
+            self.y += self.velocity[1]
+            self.velocity[1] += self.gravity
+
+    def pos_particle(self, camera_pos):
+        self.hitbox.left = self.x - camera_pos[0]
+        self.hitbox.top = self.x - camera_pos[1]
+
+
+
+
 
 class Camera():
     def __init__(self, move_buttons, speed):
