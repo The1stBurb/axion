@@ -130,7 +130,8 @@ class Level:
         self.block_object_list = []
         self.block_size = block_size
         self.player_objects = []
-        self.checkpoints = []
+        # self.checkpoints = []
+        self.particles = []
 
         self.create_block_objects()
 
@@ -150,7 +151,7 @@ class Level:
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
                 checkpoint = CheckpointBlock(idx%width, idx//width, block_hitbox, self.block_size)
                 self.block_object_list.append(checkpoint)
-                self.checkpoints.append(checkpoint)
+                # self.checkpoints.append(checkpoint)
             elif block == "J":
                 block_hitbox = pygame.Rect(0, 0, 10, 10)
                 self.block_object_list.append(AirJumpBlock(idx%width, idx//width, block_hitbox))
@@ -170,6 +171,18 @@ class Level:
             return self.player_objects[0]
         else:
             return None
+        
+    def clear_dead_particles(self):
+        new_list = []
+        for particle in self.particles:
+            if particle.lifetime > 0:
+                new_list.append(particle)
+        
+        self.particles = new_list
+
+    def death_particles(self):
+        for i in range(50):
+            pass
 
 
 class LevelEditor:
@@ -432,16 +445,24 @@ class Particle:
             self.color = [255, 0, 0]
             self.gravity = 0.25
             self.hitbox = pygame.rect.Rect(0, 0, 3, 3)
+            self.lifetime = 120
     
     def update(self):
         if self.type == "death":
             self.x += self.velocity[0]
             self.y += self.velocity[1]
             self.velocity[1] += self.gravity
+            self.lifetime -= 1
+
 
     def pos_particle(self, camera_pos):
         self.hitbox.left = self.x - camera_pos[0]
         self.hitbox.top = self.x - camera_pos[1]
+
+    def render(self, surface):
+        if self.lifetime > 0:
+            pygame.draw.rect(surface, self.color, self.hitbox)
+
 
 
 
