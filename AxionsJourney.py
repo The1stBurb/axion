@@ -130,8 +130,9 @@ class Level:
         self.block_object_list = []
         self.block_size = block_size
         self.player_objects = []
-        # self.checkpoints = []
         self.particles = []
+        self.fog_blocks = []
+        self.fog_idxes = []
 
         self.create_block_objects()
 
@@ -151,7 +152,6 @@ class Level:
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
                 checkpoint = CheckpointBlock(idx%width, idx//width, block_hitbox, self.block_size)
                 self.block_object_list.append(checkpoint)
-                # self.checkpoints.append(checkpoint)
             elif block == "J":
                 block_hitbox = pygame.Rect(0, 0, 10, 10)
                 self.block_object_list.append(AirJumpBlock(idx%width, idx//width, block_hitbox))
@@ -161,6 +161,10 @@ class Level:
             elif block == "Z":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
                 self.block_object_list.append(ExitBlock(idx%width, idx//width, block_hitbox, self.block_size))
+            elif block == "F":
+                block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
+                self.fog_blocks.append(FogBlock(idx%width, idx//width, block_hitbox, self.block_size, idx, 120))
+                self.fog_idxes.append(idx)
             
     
     def get_str_of_blocks(self):
@@ -171,18 +175,23 @@ class Level:
             return self.player_objects[0]
         else:
             return None
+    
+    def add_fog(self, idx, wait_time):
+        width = self.level_dict["width"]
+        block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
+        self.fog_blocks.append(FogBlock(idx%width, idx//width, block_hitbox, self.block_size, idx, wait_time))
+        self.fog_idxes.append(idx)
         
     def clear_dead_particles(self):
         new_list = []
         for particle in self.particles:
             if particle.lifetime > 0:
                 new_list.append(particle)
-        
         self.particles = new_list
 
-    def death_particles(self):
+    def death_particles(self, player):
         for i in range(50):
-            pass
+            self.particles.append(Particle(player.x, player.y, "death"))
 
 
 class LevelEditor:
@@ -434,14 +443,42 @@ class AirJumpBlock(Block):
         self.p_x = self.x * 20 + 5
         self.p_y = self.y * 20 + 5
 
+class FogBlock(Block):
+    def __init__(self, x, y, hitbox, blocksize, idx, wait_time):
+        super().__init__(x, y, (50,0,22), hitbox, blocksize)
+        self.wait_time = wait_time
+        self.idx = idx
+
+    def spread(self, level, wait_time):
+        assert isinstance(level, Level)
+        level_list = level.level_dict["blocklist"]
+        if self.wait_time == 0:
+            idx_above = self.idx - level.level_dict["width"]
+            idx_below = self.idx + level.level_dict["width"]
+            idx_right = self.idx + 1
+            idx_left = self.idx - 1
+
+            if level_list[idx_above] != "B" and idx_above not in level.fog_idxes:
+                level.add_fog(idx_above, wait_time)
+            if level_list[idx_below] != "B" and idx_below not in level.fog_idxes:
+                level.add_fog(idx_below, wait_time)
+            if level_list[idx_left] != "B" and idx_left not in level.fog_idxes:
+                level.add_fog(idx_left, wait_time)
+            if level_list[idx_right] != "B" and idx_right not in level.fog_idxes:
+                level.add_fog(idx_right, wait_time)
+            
+            self.wait_time = wait_time
+        else:
+            self.wait_time -= 1
+
 
 class Particle:
-    def __init__(self, x, y, color, type):
+    def __init__(self, x, y, type):
         self.type = type
         self.x = x
         self.y = y
         if self.type == "death":
-            self.velocity = [random.random()*10-5, random.random()*10-5]
+            self.velocity = [random.random()*10-5, random.random()*10-7]
             self.color = [255, 0, 0]
             self.gravity = 0.25
             self.hitbox = pygame.rect.Rect(0, 0, 3, 3)
@@ -457,7 +494,7 @@ class Particle:
 
     def pos_particle(self, camera_pos):
         self.hitbox.left = self.x - camera_pos[0]
-        self.hitbox.top = self.x - camera_pos[1]
+        self.hitbox.top = self.y - camera_pos[1]
 
     def render(self, surface):
         if self.lifetime > 0:

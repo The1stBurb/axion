@@ -76,6 +76,9 @@ def main():
                         LEVELEDITOR.change_brush("X")
                     elif event.key == K_z:
                         LEVELEDITOR.change_brush("Z")
+                    elif event.key == K_f:
+                        LEVELEDITOR.change_brush("F")
+
 
                     elif event.key == K_q:
                         editing = False
@@ -124,11 +127,15 @@ def main():
             # Set positions of rectangles
             for block in levels[LEVELEDITOR.level_idx].block_object_list:
                 block.pos_block(LEVELEDITOR.camera.pos)
+            for block in levels[GAME.level_idx].fog_blocks:
+                block.pos_block(LEVELEDITOR.camera.pos)
 
             # Draw rectangles
             windowSurface.fill((255,255,255))
 
             for block in levels[LEVELEDITOR.level_idx].block_object_list:
+                block.render(windowSurface)
+            for block in levels[LEVELEDITOR.level_idx].fog_blocks:
                 block.render(windowSurface)
 
             try:
@@ -151,6 +158,8 @@ def main():
                 cursor_color = (255,20,71)
             elif LEVELEDITOR.brush == "Z":
                 cursor_color = (255,200,100)
+            elif LEVELEDITOR.brush == "F":
+                cursor_color = (50,0,22)
 
             pygame.draw.rect(windowSurface, cursor_color, cursor_box)
 
@@ -186,7 +195,7 @@ def main():
                             block.declaim()
 
                 elif event.type == DEATH:
-                    print("death anim or smthn")
+                    levels[GAME.level_idx].death_particles(player)
 
                 elif event.type == FINISH:
                     GAME.level_idx += 1
@@ -214,6 +223,9 @@ def main():
                     block.check_touching_player(player)
                 if isinstance(block, ExitBlock):
                     block.change_color()
+                
+            for block in levels[GAME.level_idx].fog_blocks:
+                block.spread(levels[GAME.level_idx], 30)
 
 
             level_width = levels[GAME.level_idx].level_dict["width"] * 20
@@ -224,6 +236,13 @@ def main():
 
             for block in levels[GAME.level_idx].block_object_list:
                 block.pos_block(GAME.camera.pos)
+            for block in levels[GAME.level_idx].fog_blocks:
+                block.pos_block(GAME.camera.pos)
+
+            for particle in levels[GAME.level_idx].particles:
+                particle.update()
+                particle.pos_particle(GAME.camera.pos)
+                levels[GAME.level_idx].clear_dead_particles()
 
             # Draw rectangles
             windowSurface.fill((255,255,255))
@@ -233,6 +252,12 @@ def main():
 
             if player.dead == 0:
                 player.render(windowSurface)
+
+            for block in levels[GAME.level_idx].fog_blocks:
+                block.render(windowSurface)
+
+            for particle in levels[GAME.level_idx].particles:
+                particle.render(windowSurface)
 
 
             # LAST
