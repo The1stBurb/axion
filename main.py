@@ -34,6 +34,8 @@ def main():
     DEATH = pygame.USEREVENT + 2
     FINISH = pygame.USEREVENT + 3
 
+    drawing_text = 0
+
 
     while True:
         # FIRST
@@ -78,6 +80,8 @@ def main():
                         LEVELEDITOR.change_brush("Z")
                     elif event.key == K_f:
                         LEVELEDITOR.change_brush("F")
+                    elif event.key == K_n:
+                        LEVELEDITOR.change_brush("N")
 
 
                     elif event.key == K_q:
@@ -160,6 +164,8 @@ def main():
                 cursor_color = (255,200,100)
             elif LEVELEDITOR.brush == "F":
                 cursor_color = (50,0,22)
+            elif LEVELEDITOR.brush == "N":
+                cursor_color = (200, 200, 150)
 
             pygame.draw.rect(windowSurface, cursor_color, cursor_box)
 
@@ -219,10 +225,16 @@ def main():
             for block in levels[GAME.level_idx].block_object_list:
                 if isinstance(block, CheckpointBlock):
                     block.check_touching_player(player, CHECKPOINT)
-                if isinstance(block, AirJumpBlock):
+                elif isinstance(block, AirJumpBlock):
                     block.check_touching_player(player)
-                if isinstance(block, ExitBlock):
+                elif isinstance(block, ExitBlock):
                     block.change_color()
+                elif isinstance(block, TextBlock):
+                    if block.check_touching_player(player):
+                        drawing_text += 1
+                        block.message.draw_text(drawing_text)
+                    else:
+                        drawing_text = 0
                 
             for block in levels[GAME.level_idx].fog_blocks:
                 block.spread(levels[GAME.level_idx], 30)

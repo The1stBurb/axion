@@ -54,11 +54,21 @@ class LevelManager:
             l_width = l_dict["width"]
             l_height = l_dict["height"]
             l_list = "".join(l_dict["blocklist"])
+
+            l_messages = {}
+            for text_block in level.text_blocks:
+                l_messages[text_block.idx] = text_block.message.message
             
-            level_file = open("levels/level-"+str(i)+".jbu", "w")
-            level_file.write(str(l_width) + "," + str(l_height) + "," + l_list)
+            l_write = str(l_width) + "," + str(l_height) + "," + l_list
+
+            for key in l_messages:
+                l_write += f"`{key}[{l_messages[key]}]"
+
+            level_file = open("levels/level-"+str(i)+".axj", "w")
+            level_file.write(l_write)
             level_file.close()
             i += 1
+
         print("Levels saved!")
 
     def load_all(self):
@@ -68,36 +78,58 @@ class LevelManager:
         level_dir = "levels"
         id=0
         for file in os.listdir(level_dir):
-            lvl_file = open("levels/"+file, "r")
-            lvl_txt = lvl_file.read()
-            width = ""
-            for char in lvl_txt:
-                if char == ",":
-                    break
-                width += char
-            lvl_txt = lvl_txt[len(width)+1:]
-                
-            width = int(width)
-            height = ""
-            for char in lvl_txt:
-                if char == ",":
-                    break
-                height += char
-            lvl_txt = lvl_txt[len(height)+1:]
-            height = int(height)
-            lvl_list = list(lvl_txt)
+            if ".jbu" in file:
+                lvl_file = open("levels/"+file, "r")
+                lvl_txt = lvl_file.read()
+                width = ""
+                for char in lvl_txt:
+                    if char == ",":
+                        break
+                    width += char
+                lvl_txt = lvl_txt[len(width)+1:]
+                    
+                width = int(width)
+                height = ""
+                for char in lvl_txt:
+                    if char == ",":
+                        break
+                    height += char
+                lvl_txt = lvl_txt[len(height)+1:]
+                height = int(height)
+                lvl_list = list(lvl_txt[:width*height])
+                lvl_txt = lvl_txt[width*height:]
 
-            levels.append(Level(
-                id,
-                {
-                    "width": width,
-                    "height": height,
-                    "blocklist": lvl_list
-                },
-                20
-                ))
-            
-            id+=1
+                messages = {}
+                idx = ""
+                msg = ""
+                mode=0
+                for char in lvl_txt:
+                    if char == "`":
+                        mode = 1
+                    if mode == 1:
+                        if char == "[":
+                            mode = 2
+                            continue
+                        idx += char
+                    elif mode == 2:
+                        if char == "]":
+                            mode = 0
+                            messages[int(idx)] = msg
+                            continue
+                        msg += char
+
+                levels.append(Level(
+                    id,
+                    {
+                        "width": width,
+                        "height": height,
+                        "blocklist": lvl_list
+                    },
+                    20,
+                    messages
+                    ))
+                
+                id+=1
 
 
         return levels
@@ -124,7 +156,7 @@ class LevelManager:
 
 
 class Level:
-    def __init__(self, id, level_dict, block_size):
+    def __init__(self, id, level_dict, block_size, messages):
         self.id = id
         self.level_dict = level_dict
         self.block_object_list = []
@@ -133,6 +165,9 @@ class Level:
         self.particles = []
         self.fog_blocks = []
         self.fog_idxes = []
+
+        self.text_blocks = []
+        self.messages = messages
 
         self.create_block_objects()
 
@@ -165,6 +200,8 @@ class Level:
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
                 self.fog_blocks.append(FogBlock(idx%width, idx//width, block_hitbox, self.block_size, idx, 120))
                 self.fog_idxes.append(idx)
+            elif block == "N":
+                self.add_story_block(idx, width, False)
             
     
     def get_str_of_blocks(self):
@@ -181,6 +218,15 @@ class Level:
         block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
         self.fog_blocks.append(FogBlock(idx%width, idx//width, block_hitbox, self.block_size, idx, wait_time))
         self.fog_idxes.append(idx)
+
+    def add_story_block(self, idx, width):
+        block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
+        try:
+            self.text_blocks.append(TextBlock(idx%width, idx//width, block_hitbox, self.block_size, self.messages[idx]))
+        except KeyError:
+            message = input("What message should this block have?: ")
+            self.text_blocks.append(TextBlock(idx%width, idx//width, block_hitbox, self.block_size, message))
+            self.messages[idx] = message
         
     def clear_dead_particles(self):
         new_list = []
@@ -352,6 +398,7 @@ class PlayerBlock(Block):
         return level.level_dict["blocklist"][tile_idx]
 
 
+
 class RegBlock(Block):
     def __init__(self, x, y, hitbox, blocksize):
         super().__init__(x, y, (0,0,0), hitbox, blocksize)
@@ -470,6 +517,44 @@ class FogBlock(Block):
             self.wait_time = wait_time
         else:
             self.wait_time -= 1
+
+class TextBlock(Block):
+    def __init__(self, x, y, hitbox, blocksize, message):
+        super().__init__(x, y, (250, 250, 150), hitbox, blocksize)
+        self.message = Paragraph(message)
+    
+    def check_touching_player(self, player):
+        self.get_pixel_coords()
+        if (player.x < self.p_x + 19 and player.x > self.p_x - 19) and (player.y < self.p_y + 19 and player.y > self.p_y - 19):
+            return True
+    
+    def get_pixel_coords(self):
+        self.p_x = self.x * 20
+        self.p_y = self.y * 20
+
+
+class Paragraph:
+    def __init__(self, message):
+        self.message = message
+        self.frames_per_letter = 6
+
+    def create_text(self, frames):
+        idx = 0
+        string = ""
+        while idx < frames and idx < len(self.message)*self.frames_per_letter:
+            if idx/self.frames_per_letter == int(idx/self.frames_per_letter):
+                if self.message[int(idx/self.frames_per_letter)] == "~":
+                    pass
+                elif self.message[int(idx/self.frames_per_letter)] == "<":
+                    string += "\n"
+                else:
+                    string += self.message[int(idx/self.frames_per_letter)]
+            idx += 1
+        return string
+    
+    def draw_text(self, frames):
+        os.system('cls')
+        print(self.create_text(frames))
 
 
 class Particle:
