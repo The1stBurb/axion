@@ -120,8 +120,12 @@ def main():
 
             if pygame.mouse.get_pressed()[0]:
                 if levels[LEVELEDITOR.level_idx].level_dict["blocklist"][LEVELEDITOR.tile_num] != LEVELEDITOR.brush:
-                    LEVELEDITOR.add_block(levels[LEVELEDITOR.level_idx])
-                    player = levels[LEVELEDITOR.level_idx].get_player_object()
+                    if LEVELEDITOR.brush != "N" and levels[LEVELEDITOR.level_idx].level_dict["blocklist"][LEVELEDITOR.tile_num] == "N":
+                        LEVELEDITOR.add_block(levels[LEVELEDITOR.level_idx])
+                        levels[LEVELEDITOR.level_idx].messages.pop(LEVELEDITOR.tile_num)
+                    else:
+                        LEVELEDITOR.add_block(levels[LEVELEDITOR.level_idx])
+                        player = levels[LEVELEDITOR.level_idx].get_player_object()
                     
             try:
                 player.pos_block(LEVELEDITOR.camera.pos)
@@ -133,6 +137,8 @@ def main():
                 block.pos_block(LEVELEDITOR.camera.pos)
             for block in levels[GAME.level_idx].fog_blocks:
                 block.pos_block(LEVELEDITOR.camera.pos)
+            for block in levels[GAME.level_idx].text_blocks:
+                block.pos_block(LEVELEDITOR.camera.pos)
 
             # Draw rectangles
             windowSurface.fill((255,255,255))
@@ -141,6 +147,8 @@ def main():
                 block.render(windowSurface)
             for block in levels[LEVELEDITOR.level_idx].fog_blocks:
                 block.render(windowSurface)
+            for block in levels[LEVELEDITOR.level_idx].text_blocks:
+                block.render(windowSurface) 
 
             try:
                 player.render(windowSurface)
@@ -229,12 +237,12 @@ def main():
                     block.check_touching_player(player)
                 elif isinstance(block, ExitBlock):
                     block.change_color()
-                elif isinstance(block, TextBlock):
-                    if block.check_touching_player(player):
-                        drawing_text += 1
-                        block.message.draw_text(drawing_text)
-                    else:
-                        drawing_text = 0
+            for block in levels[GAME.level_idx].text_blocks:
+                if block.check_touching_player(player):
+                    drawing_text += 1
+                    block.message.draw_text(drawing_text)
+                else:
+                    drawing_text = 0
                 
             for block in levels[GAME.level_idx].fog_blocks:
                 block.spread(levels[GAME.level_idx], 30)
@@ -250,6 +258,8 @@ def main():
                 block.pos_block(GAME.camera.pos)
             for block in levels[GAME.level_idx].fog_blocks:
                 block.pos_block(GAME.camera.pos)
+            for block in levels[GAME.level_idx].text_blocks:
+                block.pos_block(GAME.camera.pos)
 
             for particle in levels[GAME.level_idx].particles:
                 particle.update()
@@ -261,12 +271,14 @@ def main():
 
             for block in levels[GAME.level_idx].block_object_list:
                 block.render(windowSurface)
-
+            for block in levels[GAME.level_idx].text_blocks:
+                block.render(windowSurface)
             if player.dead == 0:
                 player.render(windowSurface)
 
             for block in levels[GAME.level_idx].fog_blocks:
                 block.render(windowSurface)
+
 
             for particle in levels[GAME.level_idx].particles:
                 particle.render(windowSurface)

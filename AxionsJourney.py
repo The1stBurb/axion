@@ -78,7 +78,7 @@ class LevelManager:
         level_dir = "levels"
         id=0
         for file in os.listdir(level_dir):
-            if ".jbu" in file:
+            if ".axj" in file:
                 lvl_file = open("levels/"+file, "r")
                 lvl_txt = lvl_file.read()
                 width = ""
@@ -106,7 +106,7 @@ class LevelManager:
                 for char in lvl_txt:
                     if char == "`":
                         mode = 1
-                    if mode == 1:
+                    elif mode == 1:
                         if char == "[":
                             mode = 2
                             continue
@@ -115,6 +115,8 @@ class LevelManager:
                         if char == "]":
                             mode = 0
                             messages[int(idx)] = msg
+                            idx = ""
+                            msg = ""
                             continue
                         msg += char
 
@@ -174,6 +176,8 @@ class Level:
     def create_block_objects(self):
         self.block_object_list = []
         self.player_objects = []
+        self.fog_blocks = []
+        self.text_blocks = []
         width = self.level_dict["width"]
         for idx, block in enumerate(self.level_dict["blocklist"]):
             if block == "B":
@@ -201,7 +205,7 @@ class Level:
                 self.fog_blocks.append(FogBlock(idx%width, idx//width, block_hitbox, self.block_size, idx, 120))
                 self.fog_idxes.append(idx)
             elif block == "N":
-                self.add_story_block(idx, width, False)
+                self.add_story_block(idx, width)
             
     
     def get_str_of_blocks(self):
@@ -222,10 +226,10 @@ class Level:
     def add_story_block(self, idx, width):
         block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
         try:
-            self.text_blocks.append(TextBlock(idx%width, idx//width, block_hitbox, self.block_size, self.messages[idx]))
+            self.text_blocks.append(TextBlock(idx%width, idx//width, block_hitbox, self.block_size, self.messages[idx], idx))
         except KeyError:
             message = input("What message should this block have?: ")
-            self.text_blocks.append(TextBlock(idx%width, idx//width, block_hitbox, self.block_size, message))
+            self.text_blocks.append(TextBlock(idx%width, idx//width, block_hitbox, self.block_size, message, idx))
             self.messages[idx] = message
         
     def clear_dead_particles(self):
@@ -519,9 +523,10 @@ class FogBlock(Block):
             self.wait_time -= 1
 
 class TextBlock(Block):
-    def __init__(self, x, y, hitbox, blocksize, message):
+    def __init__(self, x, y, hitbox, blocksize, message, index):
         super().__init__(x, y, (250, 250, 150), hitbox, blocksize)
         self.message = Paragraph(message)
+        self.idx = index
     
     def check_touching_player(self, player):
         self.get_pixel_coords()
