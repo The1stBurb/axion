@@ -237,12 +237,15 @@ def main():
                     block.check_touching_player(player)
                 elif isinstance(block, ExitBlock):
                     block.change_color()
+                elif isinstance(block, DangerBlock):
+                    block.particles(levels[GAME.level_idx])
+
             for block in levels[GAME.level_idx].text_blocks:
                 if block.check_touching_player(player):
-                    drawing_text += 1
-                    block.message.draw_text(drawing_text)
+                    block.drawing_text += 1
+                    block.message.draw_text(block.drawing_text)
                 else:
-                    drawing_text = 0
+                    block.drawing_text = 0
                 
             for block in levels[GAME.level_idx].fog_blocks:
                 block.spread(levels[GAME.level_idx], 30)

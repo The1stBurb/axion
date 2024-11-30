@@ -242,6 +242,17 @@ class Level:
     def death_particles(self, player):
         for i in range(50):
             self.particles.append(Particle(player.x, player.y, "death"))
+    
+    def danger_particle(self, x, y):
+        self.particles.append(Particle(x, y, "danger"))
+
+    def walk_particle(self, player, direction):
+        p_x = int(player.x)
+        p_y = int(player.y)
+        if direction == 1:
+            self.particles.append(Particle(random.randint(p_x, p_x+17), random.randint(p_y, p_y+17), "left"))
+        elif direction == -1:
+            self.particles.append(Particle(random.randint(p_x, p_x+17), random.randint(p_y, p_y+17), "right"))
 
 
 class LevelEditor:
@@ -305,7 +316,7 @@ class PlayerBlock(Block):
 
     def main_loop(self, buttons_pressed, level, death_event, finish_event):
         self.fall()
-        self.walk(buttons_pressed)
+        self.walk(buttons_pressed, level)
         self.jump(buttons_pressed)
         self.update_pos(level)
         self.check_touching_danger(level, death_event)
@@ -317,7 +328,7 @@ class PlayerBlock(Block):
             self.velocity[1] = self.TERMINALVELOCITY
         self.airtime += 1
 
-    def walk(self, buttons_pressed):
+    def walk(self, buttons_pressed, level):
         key_walk = 0
         for button in self.LEFTBUTTONS:
             if buttons_pressed[button]:
@@ -330,6 +341,8 @@ class PlayerBlock(Block):
 
         self.velocity[0] += key_walk * self.WALKSPEED
         self.velocity[0] *= self.FRICTION
+        if key_walk != 0:
+            level.walk_particle(self, key_walk)
         
 
     def jump(self, buttons_pressed):
@@ -409,7 +422,17 @@ class RegBlock(Block):
 
 class DangerBlock(Block):
     def __init__(self, x, y, hitbox, blocksize):
-        super().__init__(x, y, (255,20,71), hitbox, blocksize)
+        super().__init__(x, y, (255,40,121), hitbox, blocksize)
+        self.particle_timer = 5
+
+    def particles(self, level):
+        if self.particle_timer == 0:
+            x = random.randint(self.x*20, self.x*20 + 17)
+            y = random.randint(self.y*20, self.y*20 + 10)
+            level.danger_particle(x, y)
+            self.particle_timer = 5
+        else:
+            self.particle_timer -= 1
 
 class ExitBlock(Block):
     def __init__(self, x, y, hitbox, blocksize):
@@ -527,6 +550,7 @@ class TextBlock(Block):
         super().__init__(x, y, (250, 250, 150), hitbox, blocksize)
         self.message = Paragraph(message)
         self.idx = index
+        self.drawing_text = 0
     
     def check_touching_player(self, player):
         self.get_pixel_coords()
@@ -573,12 +597,39 @@ class Particle:
             self.gravity = 0.25
             self.hitbox = pygame.rect.Rect(0, 0, 3, 3)
             self.lifetime = 120
+
+            self.update()
+
+        elif self.type == "danger":
+            self.velocity = [0, -1]
+            self.color = [255, 40, 121]
+            self.hitbox = pygame.rect.Rect(0, 0, 3, 3)
+            self.lifetime = 40
+
+        elif self.type == "left":
+            self.velocity = [-1, 0]
+            self.color = [80,80,255]
+            self.hitbox = pygame.rect.Rect(0, 0, 3, 3)
+            self.lifetime = 40
+        elif self.type == "right":
+            self.velocity = [1, 0]
+            self.color = [80,80,255]
+            self.hitbox = pygame.rect.Rect(0, 0, 3, 3)
+            self.lifetime = 40
     
     def update(self):
         if self.type == "death":
             self.x += self.velocity[0]
             self.y += self.velocity[1]
             self.velocity[1] += self.gravity
+            self.lifetime -= 1
+        elif self.type == "danger":
+            self.y += self.velocity[1]
+            self.velocity[1] *= 0.95
+            self.lifetime -= 1
+        elif self.type == "right" or self.type == "left":
+            self.x += self.velocity[0]
+            self.velocity[0] *= 0.98
             self.lifetime -= 1
 
 
