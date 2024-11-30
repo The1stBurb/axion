@@ -144,14 +144,14 @@ def main():
             windowSurface.fill((255,255,255))
 
             for block in levels[LEVELEDITOR.level_idx].block_object_list:
-                block.render(windowSurface)
+                block.render(windowSurface, LEVELEDITOR.camera.pos)
             for block in levels[LEVELEDITOR.level_idx].fog_blocks:
-                block.render(windowSurface)
+                block.render(windowSurface, LEVELEDITOR.camera.pos)
             for block in levels[LEVELEDITOR.level_idx].text_blocks:
-                block.render(windowSurface) 
+                block.render(windowSurface, LEVELEDITOR.camera.pos) 
 
             try:
-                player.render(windowSurface)
+                player.render(windowSurface, LEVELEDITOR.camera.pos)
             except:
                 pass
 
@@ -235,10 +235,12 @@ def main():
                     block.check_touching_player(player, CHECKPOINT)
                 elif isinstance(block, AirJumpBlock):
                     block.check_touching_player(player)
+                    block.particles(GAME.camera.pos, levels[GAME.level_idx])
                 elif isinstance(block, ExitBlock):
                     block.change_color()
+                    block.particles(GAME.camera.pos, levels[GAME.level_idx])
                 elif isinstance(block, DangerBlock):
-                    block.particles(levels[GAME.level_idx])
+                    block.particles(levels[GAME.level_idx], GAME.camera.pos)
 
             for block in levels[GAME.level_idx].text_blocks:
                 if block.check_touching_player(player):
@@ -273,14 +275,14 @@ def main():
             windowSurface.fill((255,255,255))
 
             for block in levels[GAME.level_idx].block_object_list:
-                block.render(windowSurface)
+                block.render(windowSurface, GAME.camera.pos)
             for block in levels[GAME.level_idx].text_blocks:
-                block.render(windowSurface)
+                block.render(windowSurface, GAME.camera.pos)
             if player.dead == 0:
-                player.render(windowSurface)
+                player.render(windowSurface, GAME.camera.pos)
 
             for block in levels[GAME.level_idx].fog_blocks:
-                block.render(windowSurface)
+                block.render(windowSurface, GAME.camera.pos)
 
 
             for particle in levels[GAME.level_idx].particles:

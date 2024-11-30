@@ -253,6 +253,12 @@ class Level:
             self.particles.append(Particle(random.randint(p_x, p_x+17), random.randint(p_y, p_y+17), "left"))
         elif direction == -1:
             self.particles.append(Particle(random.randint(p_x, p_x+17), random.randint(p_y, p_y+17), "right"))
+    
+    def exit_particle(self, x, y, color):
+        self.particles.append(Particle(x, y, "exit", color))
+
+    def airjump_particle(self, x, y):
+        self.particles.append(Particle(x, y, "airjump"))
 
 
 class LevelEditor:
@@ -284,8 +290,9 @@ class Block:
         self.hitbox.left = self.x*self.blocksize - camera_pos[0]
         self.hitbox.top = self.y*self.blocksize - camera_pos[1]
 
-    def render(self, windowSurface):
-        pygame.draw.rect(windowSurface, self.color, self.hitbox)
+    def render(self, windowSurface, camera_pos):
+        if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 30 > camera_pos[1] and self.y*20 < camera_pos[1] + 610:
+            pygame.draw.rect(windowSurface, self.color, self.hitbox)
 
 
 
@@ -312,6 +319,7 @@ class PlayerBlock(Block):
         self.checkpoint_x = x
         self.checkpoint_y = y
         
+        self.particle_timer = 0
         self.dead = 0
 
     def main_loop(self, buttons_pressed, level, death_event, finish_event):
@@ -342,7 +350,11 @@ class PlayerBlock(Block):
         self.velocity[0] += key_walk * self.WALKSPEED
         self.velocity[0] *= self.FRICTION
         if key_walk != 0:
-            level.walk_particle(self, key_walk)
+            if self.particle_timer == 0:
+                level.walk_particle(self, key_walk)
+                self.particle_timer = 1
+            else:
+                self.particle_timer -= 1
         
 
     def jump(self, buttons_pressed):
@@ -407,6 +419,10 @@ class PlayerBlock(Block):
         if self.get_tile_at(self.x, self.y, level) == "Z" or self.get_tile_at(self.x, self.y+19, level) == "Z" or self.get_tile_at(self.x+19, self.y, level) == "Z" or self.get_tile_at(self.x+19, self.y+19, level) == "Z":
             pygame.event.post(pygame.event.Event(event))
 
+    def render(self, windowSurface, camera_pos):
+        if self.x + 30 > camera_pos[0] and self.x < camera_pos[0] + 610 and self.y + 30 > camera_pos[1] and self.y < camera_pos[1] + 610:
+            pygame.draw.rect(windowSurface, self.color, self.hitbox)
+
     @staticmethod
     def get_tile_at(x, y, level):
         tile_x = int(x/20)
@@ -425,18 +441,20 @@ class DangerBlock(Block):
         super().__init__(x, y, (255,40,121), hitbox, blocksize)
         self.particle_timer = 5
 
-    def particles(self, level):
+    def particles(self, level, camera_pos):
         if self.particle_timer == 0:
-            x = random.randint(self.x*20, self.x*20 + 17)
-            y = random.randint(self.y*20, self.y*20 + 10)
-            level.danger_particle(x, y)
-            self.particle_timer = 5
+            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620:
+                x = random.randint(self.x*20, self.x*20 + 17)
+                y = random.randint(self.y*20, self.y*20 + 10)
+                level.danger_particle(x, y)
+                self.particle_timer = 5
         else:
             self.particle_timer -= 1
 
 class ExitBlock(Block):
     def __init__(self, x, y, hitbox, blocksize):
         super().__init__(x, y, [255, 0, 0], hitbox, blocksize)
+        self.particle_timer = 0
 
     def change_color(self):
         if self.color[0] > 0 and self.color[1] < 255 and self.color[2] == 0:
@@ -456,6 +474,16 @@ class ExitBlock(Block):
 
         elif self.color[2] > 0 and self.color[0] == 255:
             self.color[2] -= 5
+
+    def particles(self, camera_pos, level):
+        if self.particle_timer == 0:
+            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620:
+                x = self.x*20+10
+                y = self.y*20+10
+                level.exit_particle(x, y, self.color)
+                self.particle_timer = 2
+        else:
+            self.particle_timer -= 1
     
 class CheckpointBlock(Block):
     def __init__(self, x, y, hitbox, blocksize):
@@ -492,15 +520,17 @@ class AirJumpBlock(Block):
     def __init__(self, x, y, hitbox):
         super().__init__(x, y, (255,175,0), hitbox, 10)
         self.claimed_frames = 0
+        self.particle_timer = 0
     
     def pos_block(self, camera_pos):
         self.hitbox.left = self.x*20+5 - camera_pos[0]
         self.hitbox.top = self.y*20+5 - camera_pos[1]
     
-    def render(self, windowSurface):
+    def render(self, windowSurface, camera_pos):
         if self.claimed_frames > 0:
             self.claimed_frames -= 1
         else:
+            self.claimed_frames = 0
             pygame.draw.rect(windowSurface, self.color, self.hitbox)
 
     def claim(self, player):
@@ -516,6 +546,16 @@ class AirJumpBlock(Block):
     def get_pixel_coords(self):
         self.p_x = self.x * 20 + 5
         self.p_y = self.y * 20 + 5
+
+    def particles(self, camera_pos, level):
+        if self.particle_timer == 0:
+            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620 and self.claimed_frames == 0:
+                x = self.x*20+10
+                y = self.y*20+10
+                level.airjump_particle(x, y)
+                self.particle_timer = 2
+        else:
+            self.particle_timer -= 1
 
 class FogBlock(Block):
     def __init__(self, x, y, hitbox, blocksize, idx, wait_time):
@@ -587,7 +627,7 @@ class Paragraph:
 
 
 class Particle:
-    def __init__(self, x, y, type):
+    def __init__(self, x, y, type, color=None):
         self.type = type
         self.x = x
         self.y = y
@@ -616,6 +656,18 @@ class Particle:
             self.color = [80,80,255]
             self.hitbox = pygame.rect.Rect(0, 0, 3, 3)
             self.lifetime = 40
+
+        elif self.type == "exit":
+            self.velocity = [random.random()*3-1.5, random.random()*3-1.5]
+            self.color = color
+            self.hitbox = pygame.rect.Rect(0, 0, 3, 3)
+            self.lifetime = 40
+
+        elif self.type == "airjump":
+            self.velocity = [random.random()*2-1, random.random()*2-1]
+            self.color = (255,175,0)
+            self.hitbox = pygame.rect.Rect(0, 0, 3, 3)
+            self.lifetime = 40
     
     def update(self):
         if self.type == "death":
@@ -630,6 +682,12 @@ class Particle:
         elif self.type == "right" or self.type == "left":
             self.x += self.velocity[0]
             self.velocity[0] *= 0.98
+            self.lifetime -= 1
+        elif self.type == "exit" or self.type == "airjump":
+            self.x += self.velocity[0]
+            self.y += self.velocity[1]
+            self.velocity[0] *= 0.95
+            self.velocity[1] *= 0.95
             self.lifetime -= 1
 
 
