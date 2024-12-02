@@ -210,6 +210,7 @@ def main():
 
                 elif event.type == DEATH:
                     levels[GAME.level_idx].death_particles(player)
+                    GAME.camera.screenshake_intensity = 18
 
                 elif event.type == FINISH:
                     GAME.level_idx += 1
@@ -256,6 +257,7 @@ def main():
             level_width = levels[GAME.level_idx].level_dict["width"] * 20
             level_height = levels[GAME.level_idx].level_dict["height"] * 20
             GAME.move_camera_to_player(player.x+20, player.y+20, [level_width, level_height])
+            GAME.camera.screenshake()
 
             player.pos_block(GAME.camera.pos)
 

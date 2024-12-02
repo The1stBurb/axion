@@ -185,7 +185,8 @@ class Level:
                 self.block_object_list.append(RegBlock(idx%width, idx//width, block_hitbox, self.block_size))
             elif block == "P":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
-                new_player = PlayerBlock(self.block_size*(idx%width), self.block_size*(idx//width), block_hitbox, self.block_size)
+                char = pygame.Rect(0, 0, self.block_size, self.block_size)
+                new_player = PlayerBlock(self.block_size*(idx%width), self.block_size*(idx//width), block_hitbox, self.block_size, char)
                 self.player_objects.append(new_player)
             elif block == "C":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
@@ -246,13 +247,13 @@ class Level:
     def danger_particle(self, x, y):
         self.particles.append(Particle(x, y, "danger"))
 
-    def walk_particle(self, player, direction):
+    def walk_particle(self, player, direction, color):
         p_x = int(player.x)
         p_y = int(player.y)
         if direction == 1:
-            self.particles.append(Particle(random.randint(p_x, p_x+17), random.randint(p_y, p_y+17), "left"))
+            self.particles.append(Particle(random.randint(p_x, p_x+17), random.randint(p_y, p_y+17), "left", color))
         elif direction == -1:
-            self.particles.append(Particle(random.randint(p_x, p_x+17), random.randint(p_y, p_y+17), "right"))
+            self.particles.append(Particle(random.randint(p_x, p_x+17), random.randint(p_y, p_y+17), "right", color))
     
     def exit_particle(self, x, y, color):
         self.particles.append(Particle(x, y, "exit", color))
@@ -297,8 +298,10 @@ class Block:
 
 
 class PlayerBlock(Block):
-    def __init__(self, x, y, hitbox, blocksize):
-        super().__init__(x, y, (80,80,255), hitbox, blocksize)
+    def __init__(self, x, y, hitbox, blocksize, character):
+        super().__init__(x, y, [80,80,255], hitbox, blocksize)
+
+        self.character = character
 
         self.GRAVITY = 0.25
         self.WALKSPEED = 1.5
@@ -310,6 +313,11 @@ class PlayerBlock(Block):
         self.JUMPBUTTONS = [K_w, K_UP, K_SPACE]
         self.LEFTBUTTONS = [K_a, K_LEFT]
         self.RIGHTBUTTONS = [K_d, K_RIGHT]
+
+        self.ZERO_COLOR = [144, 166, 173]
+        self.ONE_COLOR = [80,80,255]
+        self.TWO_COLOR = [34, 240, 109]
+        self.MORE_COLOR = [240, 34, 219]
         
         self.released_jump = True
         self.velocity = [0,0]
@@ -321,6 +329,9 @@ class PlayerBlock(Block):
         
         self.particle_timer = 0
         self.dead = 0
+
+        self.width = 20
+        self.height = 20
 
     def main_loop(self, buttons_pressed, level, death_event, finish_event):
         self.fall()
@@ -351,7 +362,7 @@ class PlayerBlock(Block):
         self.velocity[0] *= self.FRICTION
         if key_walk != 0:
             if self.particle_timer == 0:
-                level.walk_particle(self, key_walk)
+                level.walk_particle(self, key_walk, self.color)
                 self.particle_timer = 1
             else:
                 self.particle_timer -= 1
@@ -363,6 +374,7 @@ class PlayerBlock(Block):
                 if self.airtime < self.COYOTETIME:
                     self.velocity[1] = -self.JUMPHEIGHT
                     self.released_jump = False
+                    self.stretch(False)
                 elif self.airjumps > 0 and self.released_jump:
                     self.velocity[1] = -self.JUMPHEIGHT
                     self.airjumps -= 1
@@ -391,6 +403,21 @@ class PlayerBlock(Block):
             self.velocity[1] = 0
             
 
+    def stretch(self, is_air_jump):
+        self.width -= 6
+        self.height += 6
+        while self.width < 14:
+            self.width += 1
+            self.height -= 1
+            self.character.inflate_ip(1, -1)
+        self.character.inflate_ip(-6, 6)
+
+    def squarify(self):
+        if self.width < 20:
+            self.width += 1
+            self.height -= 1
+            self.character.inflate_ip(1, -1)
+
             
     def update_pos(self, level):
         self.x += self.velocity[0]
@@ -400,6 +427,9 @@ class PlayerBlock(Block):
 
 
     def pos_block(self, camera_pos):
+        self.character.left = self.x - camera_pos[0]
+        self.character.top = self.y - camera_pos[1]
+
         self.hitbox.left = self.x - camera_pos[0]
         self.hitbox.top = self.y - camera_pos[1]
 
@@ -419,9 +449,17 @@ class PlayerBlock(Block):
         if self.get_tile_at(self.x, self.y, level) == "Z" or self.get_tile_at(self.x, self.y+19, level) == "Z" or self.get_tile_at(self.x+19, self.y, level) == "Z" or self.get_tile_at(self.x+19, self.y+19, level) == "Z":
             pygame.event.post(pygame.event.Event(event))
 
+
     def render(self, windowSurface, camera_pos):
-        if self.x + 30 > camera_pos[0] and self.x < camera_pos[0] + 610 and self.y + 30 > camera_pos[1] and self.y < camera_pos[1] + 610:
-            pygame.draw.rect(windowSurface, self.color, self.hitbox)
+        if self.airjumps == 0:
+            self.color = self.ZERO_COLOR.copy()
+        elif self.airjumps == 1:
+            self.color = self.ONE_COLOR.copy()
+        elif self.airjumps == 2:
+            self.color = self.TWO_COLOR.copy()
+        elif self.airjumps >= 3:
+            self.color = self.MORE_COLOR.copy()
+        pygame.draw.rect(windowSurface, self.color, self.character)
 
     @staticmethod
     def get_tile_at(x, y, level):
@@ -648,12 +686,12 @@ class Particle:
 
         elif self.type == "left":
             self.velocity = [-1, 0]
-            self.color = [80,80,255]
+            self.color = color
             self.hitbox = pygame.rect.Rect(0, 0, 3, 3)
             self.lifetime = 40
         elif self.type == "right":
             self.velocity = [1, 0]
-            self.color = [80,80,255]
+            self.color = color
             self.hitbox = pygame.rect.Rect(0, 0, 3, 3)
             self.lifetime = 40
 
@@ -706,19 +744,33 @@ class Particle:
 
 class Camera():
     def __init__(self, move_buttons, speed):
+        self.real_pos = [0, 0]
         self.pos = [0, 0]
         self.move_buttons = move_buttons
         self.speed = speed
+        self.screenshake_intensity = 0
 
 
     def move_camera(self, movement, boundaries):
-        self.pos[0] += movement[0]
-        self.pos[1] += movement[1]
-        if self.pos[0] < 0:
-            self.pos[0] = 0
-        if self.pos[1] < 0:
-            self.pos[1] = 0
-        if self.pos[0] > boundaries[0] - 600:
-            self.pos[0] = boundaries[0] - 600
-        if self.pos[1] > boundaries[1] - 600:
-            self.pos[1] = boundaries[1] - 600
+        self.real_pos[0] += movement[0]
+        self.real_pos[1] += movement[1]
+        if self.real_pos[0] < 0:
+            self.real_pos[0] = 0
+        if self.real_pos[1] < 0:
+            self.real_pos[1] = 0
+        if self.real_pos[0] > boundaries[0] - 600:
+            self.real_pos[0] = boundaries[0] - 600
+        if self.real_pos[1] > boundaries[1] - 600:
+            self.real_pos[1] = boundaries[1] - 600
+    
+    def screenshake(self):
+        self.pos = self.real_pos.copy()
+        if self.screenshake_intensity > 0.4:
+            self.pos[0] += random.random()*self.screenshake_intensity-(self.screenshake_intensity/2)
+            self.pos[1] += random.random()*self.screenshake_intensity-(self.screenshake_intensity/2)
+            self.screenshake_intensity -= 0.5
+
+
+
+class SoundManager:
+    pass
