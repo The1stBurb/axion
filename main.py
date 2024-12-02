@@ -210,7 +210,7 @@ def main():
 
                 elif event.type == DEATH:
                     levels[GAME.level_idx].death_particles(player)
-                    GAME.camera.screenshake_intensity = 18
+                    GAME.camera.screenshake_intensity = 17
 
                 elif event.type == FINISH:
                     GAME.level_idx += 1

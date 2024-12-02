@@ -338,6 +338,7 @@ class PlayerBlock(Block):
         self.walk(buttons_pressed, level)
         self.jump(buttons_pressed)
         self.update_pos(level)
+        self.squarify()
         self.check_touching_danger(level, death_event)
         self.check_exit(level, finish_event)
 
@@ -379,6 +380,7 @@ class PlayerBlock(Block):
                     self.velocity[1] = -self.JUMPHEIGHT
                     self.airjumps -= 1
                     self.released_jump = False
+                    self.stretch(True)
                 break
         else:
             self.released_jump = True
@@ -396,6 +398,8 @@ class PlayerBlock(Block):
         if self.get_tile_at(self.x, self.y, level) == "B" or self.get_tile_at(self.x, self.y+20, level) == "B" or self.get_tile_at(self.x+19, self.y, level) == "B" or self.get_tile_at(self.x+19, self.y+20, level) == "B":
             if self.velocity[1] > 0:
                 self.y -= (self.y % 20)
+                if self.airtime > 2:
+                    self.squish()
                 self.airtime = 0
                 self.airjumps = 1
             else:
@@ -404,19 +408,41 @@ class PlayerBlock(Block):
             
 
     def stretch(self, is_air_jump):
-        self.width -= 6
-        self.height += 6
-        while self.width < 14:
-            self.width += 1
-            self.height -= 1
-            self.character.inflate_ip(1, -1)
-        self.character.inflate_ip(-6, 6)
+        if is_air_jump:
+            self.width -= 13
+            self.height += 13
+            while self.width < 7:
+                self.width += 1
+                self.height -= 1
+                self.character.inflate_ip(1, -1)
+            self.character.inflate_ip(-13, 13)
+        else:
+            self.width -= 6
+            self.height += 6
+            while self.width < 14:
+                self.width += 1
+                self.height -= 1
+                self.character.inflate_ip(1, -1)
+            self.character.inflate_ip(-6, 6)
+
+    def squish(self):
+        self.width += 6
+        self.height -= 6
+        while self.width > 26:
+            self.width -= 1
+            self.height += 1
+            self.character.inflate_ip(-1, 1)
+        self.character.inflate_ip(6, -6)
 
     def squarify(self):
         if self.width < 20:
             self.width += 1
             self.height -= 1
             self.character.inflate_ip(1, -1)
+        elif self.width > 20:
+            self.width -= 1
+            self.height += 1
+            self.character.inflate_ip(-1, 1)
 
             
     def update_pos(self, level):
@@ -427,11 +453,9 @@ class PlayerBlock(Block):
 
 
     def pos_block(self, camera_pos):
-        self.character.left = self.x - camera_pos[0]
-        self.character.top = self.y - camera_pos[1]
-
         self.hitbox.left = self.x - camera_pos[0]
         self.hitbox.top = self.y - camera_pos[1]
+        self.character.midbottom = self.hitbox.midbottom
 
     def reset_to_checkpoint(self):
         self.x = self.checkpoint_x
