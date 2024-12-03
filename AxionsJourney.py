@@ -170,6 +170,7 @@ class Level:
 
         self.text_blocks = []
         self.messages = messages
+        self.is_writing = False
 
         self.create_block_objects()
 
@@ -426,13 +427,13 @@ class PlayerBlock(Block):
             self.character.inflate_ip(-6, 6)
 
     def squish(self):
-        self.width += 6
-        self.height -= 6
-        while self.width > 26:
+        self.width += 8
+        self.height -= 8
+        while self.width > 28:
             self.width -= 1
             self.height += 1
             self.character.inflate_ip(-1, 1)
-        self.character.inflate_ip(6, -6)
+        self.character.inflate_ip(8, -8)
 
     def squarify(self):
         if self.width < 20:
@@ -652,7 +653,9 @@ class TextBlock(Block):
         super().__init__(x, y, (250, 250, 150), hitbox, blocksize)
         self.message = Paragraph(message)
         self.idx = index
+        self.is_writing = False
         self.drawing_text = 0
+        self.prompt_font = pygame.font.Font("PixelSplitter-Bold.ttf", 15)
     
     def check_touching_player(self, player):
         self.get_pixel_coords()
@@ -662,6 +665,15 @@ class TextBlock(Block):
     def get_pixel_coords(self):
         self.p_x = self.x * 20
         self.p_y = self.y * 20
+    
+    def draw_prompt(self, camera_pos, screen):
+        press_e = self.prompt_font.render("Press E", False, (100, 100, 100), None)
+        press_e_rect = press_e.get_rect()
+        pos_x = self.p_x - camera_pos[0]
+        pos_y = self.p_y - camera_pos[1]
+        press_e_rect.centerx = pos_x + 10
+        press_e_rect.centery = pos_y - 20
+        screen.blit(press_e, press_e_rect)
 
 
 class Paragraph:

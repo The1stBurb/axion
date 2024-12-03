@@ -203,6 +203,19 @@ def main():
                     if event.key == K_r:
                         player.reset_to_checkpoint()
 
+                    if event.key == K_e:
+                        if levels[GAME.level_idx].is_writing:
+                            levels[GAME.level_idx].is_writing = False
+                            for block in levels[GAME.level_idx].text_blocks:
+                                block.is_writing = False
+                        else:
+                            for block in levels[GAME.level_idx].text_blocks:
+                                if block.check_touching_player(player) and not block.is_writing:
+                                    block.is_writing = True
+                                    levels[GAME.level_idx].is_writing = True
+                                    break
+                                
+
                 elif event.type == CHECKPOINT:
                     for block in levels[GAME.level_idx].block_object_list:
                         if isinstance(block, CheckpointBlock):
@@ -224,7 +237,8 @@ def main():
             keys = pygame.key.get_pressed()
 
             if player.dead == 0:
-                player.main_loop(keys, levels[GAME.level_idx], DEATH, FINISH)
+                if not levels[GAME.level_idx].is_writing:
+                    player.main_loop(keys, levels[GAME.level_idx], DEATH, FINISH)
             else:
                 player.dead -= 1
                 if player.dead == 0:
@@ -244,12 +258,12 @@ def main():
                     block.particles(levels[GAME.level_idx], GAME.camera.pos)
 
             for block in levels[GAME.level_idx].text_blocks:
-                if block.check_touching_player(player):
+                if block.is_writing:
                     block.drawing_text += 1
                     block.message.draw_text(block.drawing_text)
                 else:
                     block.drawing_text = 0
-                
+
             for block in levels[GAME.level_idx].fog_blocks:
                 block.spread(levels[GAME.level_idx], 30)
 
@@ -280,6 +294,8 @@ def main():
                 block.render(windowSurface, GAME.camera.pos)
             for block in levels[GAME.level_idx].text_blocks:
                 block.render(windowSurface, GAME.camera.pos)
+                if block.check_touching_player(player):
+                    block.draw_prompt(GAME.camera.pos, windowSurface)
             if player.dead == 0:
                 player.render(windowSurface, GAME.camera.pos)
 
@@ -289,6 +305,7 @@ def main():
 
             for particle in levels[GAME.level_idx].particles:
                 particle.render(windowSurface)
+
 
 
             # LAST
