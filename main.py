@@ -108,6 +108,7 @@ def main():
                 LEVELEDITOR.camera.move_camera([-LEVELEDITOR.camera.speed, 0], [level_width, level_height])
             if keys[LEVELEDITOR.camera.move_buttons["right"]]:
                 LEVELEDITOR.camera.move_camera([LEVELEDITOR.camera.speed, 0], [level_width, level_height])
+            LEVELEDITOR.camera.screenshake()
 
             mouse_pos = [raw_mouse_pos[0]+LEVELEDITOR.camera.pos[0], raw_mouse_pos[1]+LEVELEDITOR.camera.pos[1]]
 

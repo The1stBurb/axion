@@ -427,13 +427,14 @@ class PlayerBlock(Block):
             self.character.inflate_ip(-6, 6)
 
     def squish(self):
-        self.width += 8
-        self.height -= 8
-        while self.width > 28:
+        amount = int(self.velocity[1])
+        self.width += amount
+        self.height -= amount
+        while self.width > 20 + amount:
             self.width -= 1
             self.height += 1
             self.character.inflate_ip(-1, 1)
-        self.character.inflate_ip(8, -8)
+        self.character.inflate_ip(amount, -amount)
 
     def squarify(self):
         if self.width < 20:
