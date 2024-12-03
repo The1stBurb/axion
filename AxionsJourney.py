@@ -362,6 +362,8 @@ class PlayerBlock(Block):
 
         self.velocity[0] += key_walk * self.WALKSPEED
         self.velocity[0] *= self.FRICTION
+        if abs(self.velocity[0]) < 0.1:
+            self.velocity[0] = 0
         if key_walk != 0:
             if self.particle_timer == 0:
                 level.walk_particle(self, key_walk, self.color)
