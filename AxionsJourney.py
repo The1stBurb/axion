@@ -208,6 +208,19 @@ class Level:
                 self.fog_idxes.append(idx)
             elif block == "N":
                 self.add_story_block(idx, width)
+
+            elif block == "O":
+                block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
+                self.block_object_list.append(WindBlock(idx%width, idx//width, block_hitbox, self.block_size, "up"))
+            elif block == "L":
+                block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
+                self.block_object_list.append(WindBlock(idx%width, idx//width, block_hitbox, self.block_size, "down"))
+            elif block == "K":
+                block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
+                self.block_object_list.append(WindBlock(idx%width, idx//width, block_hitbox, self.block_size, "left"))
+            elif block == ";":
+                block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
+                self.block_object_list.append(WindBlock(idx%width, idx//width, block_hitbox, self.block_size, "right"))
             
     
     def get_str_of_blocks(self):
@@ -306,10 +319,12 @@ class PlayerBlock(Block):
 
         self.GRAVITY = 0.25
         self.WALKSPEED = 1.5
+        self.AIRSPEED = 0.5
         self.JUMPHEIGHT = 5.5
         self.TERMINALVELOCITY = 10
         self.COYOTETIME = 6
         self.FRICTION = 0.7
+        self.AIRFRICTION = 0.9
 
         self.JUMPBUTTONS = [K_w, K_UP, K_SPACE]
         self.LEFTBUTTONS = [K_a, K_LEFT]
@@ -359,9 +374,13 @@ class PlayerBlock(Block):
             if buttons_pressed[button]:
                 key_walk += 1
                 break
-
-        self.velocity[0] += key_walk * self.WALKSPEED
-        self.velocity[0] *= self.FRICTION
+        
+        if self.airtime < 3:
+            self.velocity[0] += key_walk * self.WALKSPEED
+            self.velocity[0] *= self.FRICTION
+        else:
+            self.velocity[0] += key_walk * self.AIRSPEED
+            self.velocity[0] *= self.AIRFRICTION
         if abs(self.velocity[0]) < 0.1:
             self.velocity[0] = 0
         if key_walk != 0:
@@ -678,6 +697,31 @@ class TextBlock(Block):
         press_e_rect.centery = pos_y - 20
         screen.blit(press_e, press_e_rect)
 
+class WindBlock(Block):
+    def __init__(self, x, y, hitbox, blocksize, direction):
+        super().__init__(x, y, (250, 250, 250), hitbox, blocksize)
+        self.direction = direction
+        self.strength = 0.2
+
+    def check_touching_player(self, player):
+        self.get_pixel_coords()
+        if (player.x < self.p_x + 19 and player.x > self.p_x - 19) and (player.y < self.p_y + 19 and player.y > self.p_y - 19):
+            return True
+    
+    def get_pixel_coords(self):
+        self.p_x = self.x * 20
+        self.p_y = self.y * 20
+
+    def push_player(self, player):
+        if self.direction == "up":
+            player.velocity[1] -= self.strength
+        elif self.direction == "down":
+            player.velocity[1] += self.strength
+        elif self.direction == "left":
+            player.velocity[0] -= self.strength
+        elif self.direction == "right":
+            player.velocity[0] += self.strength
+
 
 class Paragraph:
     def __init__(self, message):
@@ -837,10 +881,10 @@ class Camera():
     
     def screenshake(self):
         self.pos = self.real_pos.copy()
-        if self.screenshake_intensity > 0.4:
+        if self.screenshake_intensity >= 1:
             self.pos[0] += random.random()*self.screenshake_intensity-(self.screenshake_intensity/2)
             self.pos[1] += random.random()*self.screenshake_intensity-(self.screenshake_intensity/2)
-            self.screenshake_intensity -= 0.5
+            self.screenshake_intensity -= 1
 
 
 

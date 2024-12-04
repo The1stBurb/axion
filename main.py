@@ -58,11 +58,11 @@ def main():
                         LEVELEDITOR.level_idx = len(levels)-1
                     elif event.key == K_r:
                         levels[LEVELEDITOR.level_idx] = LEVELMANAGER.add_level(LEVELEDITOR.level_idx)
-                    elif event.key == K_j:
+                    elif event.key == K_h:
                         LEVELEDITOR.level_idx -= 1
                         if LEVELEDITOR.level_idx < 0:
                             LEVELEDITOR.level_idx = len(levels)-1
-                    elif event.key == K_k:
+                    elif event.key == K_j:
                         LEVELEDITOR.level_idx += 1
                         if LEVELEDITOR.level_idx >= len(levels):
                             LEVELEDITOR.level_idx = 0
@@ -85,6 +85,15 @@ def main():
                         LEVELEDITOR.change_brush("F")
                     elif event.key == K_n:
                         LEVELEDITOR.change_brush("N")
+
+                    elif event.key == K_o:
+                        LEVELEDITOR.change_brush("O")
+                    elif event.key == K_k:
+                        LEVELEDITOR.change_brush("K")
+                    elif event.key == K_l:
+                        LEVELEDITOR.change_brush("L")
+                    elif event.key == K_SEMICOLON:
+                        LEVELEDITOR.change_brush(";")
 
 
                     elif event.key == K_q:
@@ -178,6 +187,9 @@ def main():
                 cursor_color = (50,0,22)
             elif LEVELEDITOR.brush == "N":
                 cursor_color = (200, 200, 150)
+            
+            elif LEVELEDITOR.brush == "O" or LEVELEDITOR.brush == "K" or LEVELEDITOR.brush == "L" or LEVELEDITOR.brush == ";":
+                cursor_color = (250, 250, 250)
 
             pygame.draw.rect(windowSurface, cursor_color, cursor_box)
 
@@ -227,7 +239,7 @@ def main():
 
                 elif event.type == DEATH:
                     levels[GAME.level_idx].death_particles(player)
-                    GAME.camera.screenshake_intensity = 10
+                    GAME.camera.screenshake_intensity = 18
                     hit.play()
 
                 elif event.type == FINISH:
@@ -261,6 +273,9 @@ def main():
                     block.particles(GAME.camera.pos, levels[GAME.level_idx])
                 elif isinstance(block, DangerBlock):
                     block.particles(levels[GAME.level_idx], GAME.camera.pos)
+                elif isinstance(block, WindBlock):
+                    if block.check_touching_player(player):
+                        block.push_player(player)
 
             for block in levels[GAME.level_idx].fog_blocks:
                 block.spread(levels[GAME.level_idx], 30)
