@@ -230,7 +230,7 @@ class Level:
         try:
             self.text_blocks.append(TextBlock(idx%width, idx//width, block_hitbox, self.block_size, self.messages[idx], idx))
         except KeyError:
-            message = input("What message should this block have?: ")
+            message = input("What message should this block have? (34 Characters to a line): ")
             self.text_blocks.append(TextBlock(idx%width, idx//width, block_hitbox, self.block_size, message, idx))
             self.messages[idx] = message
         
@@ -682,25 +682,58 @@ class TextBlock(Block):
 class Paragraph:
     def __init__(self, message):
         self.message = message
-        self.frames_per_letter = 6
+        self.frames_per_letter = 5
+        self.font = pygame.font.Font("Pixellari.ttf", 30)
 
     def create_text(self, frames):
         idx = 0
+        full_message = []
         string = ""
         while idx < frames and idx < len(self.message)*self.frames_per_letter:
             if idx/self.frames_per_letter == int(idx/self.frames_per_letter):
                 if self.message[int(idx/self.frames_per_letter)] == "~":
                     pass
                 elif self.message[int(idx/self.frames_per_letter)] == "<":
-                    string += "\n"
+                    full_message.append(string)
+                    string = ""
                 else:
                     string += self.message[int(idx/self.frames_per_letter)]
             idx += 1
-        return string
+        full_message.append(string)
+        return full_message
     
-    def draw_text(self, frames):
-        os.system('cls')
-        print(self.create_text(frames))
+    def draw_text(self, frames, screen):
+        text = self.create_text(frames)
+        full_rect = pygame.rect.Rect(0, 450, 600, 150)
+        mid_rect = pygame.rect.Rect(10, 460, 580, 130)
+        center_rect = pygame.rect.Rect(20, 470, 560, 110)
+
+        text_surf1 = self.font.render(text[0], False, (0, 0, 0))
+        text_rect1 = text_surf1.get_rect()
+        text_rect1.left = 30
+        text_rect1.top = 480
+
+        if len(text) > 1:
+            text_surf2 = self.font.render(text[1], False, (0, 0, 0))
+            text_rect2 = text_surf2.get_rect()
+            text_rect2.left = 30
+            text_rect2.top = 510
+
+        if len(text) > 2:
+            text_surf3 = self.font.render(text[2], False, (0, 0, 0))
+            text_rect3 = text_surf3.get_rect()
+            text_rect3.left = 30
+            text_rect3.top = 540
+
+
+        pygame.draw.rect(screen, (0, 0, 0), full_rect)
+        pygame.draw.rect(screen, (100, 100, 100), mid_rect)
+        pygame.draw.rect(screen, (255, 255, 255), center_rect)
+        screen.blit(text_surf1, text_rect1)
+        if len(text) > 1:
+            screen.blit(text_surf2, text_rect2)
+        if len(text) > 2:
+            screen.blit(text_surf3, text_rect3)
 
 
 class Particle:

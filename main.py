@@ -36,6 +36,9 @@ def main():
 
     drawing_text = 0
 
+    pygame.mixer.init()
+
+    hit = pygame.mixer.Sound("hit.wav")
 
     while True:
         # FIRST
@@ -224,7 +227,8 @@ def main():
 
                 elif event.type == DEATH:
                     levels[GAME.level_idx].death_particles(player)
-                    GAME.camera.screenshake_intensity = 17
+                    GAME.camera.screenshake_intensity = 10
+                    hit.play()
 
                 elif event.type == FINISH:
                     GAME.level_idx += 1
@@ -258,13 +262,6 @@ def main():
                 elif isinstance(block, DangerBlock):
                     block.particles(levels[GAME.level_idx], GAME.camera.pos)
 
-            for block in levels[GAME.level_idx].text_blocks:
-                if block.is_writing:
-                    block.drawing_text += 1
-                    block.message.draw_text(block.drawing_text)
-                else:
-                    block.drawing_text = 0
-
             for block in levels[GAME.level_idx].fog_blocks:
                 block.spread(levels[GAME.level_idx], 30)
 
@@ -297,17 +294,22 @@ def main():
                 block.render(windowSurface, GAME.camera.pos)
                 if block.check_touching_player(player):
                     block.draw_prompt(GAME.camera.pos, windowSurface)
+
             if player.dead == 0:
                 player.render(windowSurface, GAME.camera.pos)
 
             for block in levels[GAME.level_idx].fog_blocks:
                 block.render(windowSurface, GAME.camera.pos)
 
-
             for particle in levels[GAME.level_idx].particles:
                 particle.render(windowSurface)
 
-
+            for block in levels[GAME.level_idx].text_blocks:
+                if block.is_writing:
+                    block.drawing_text += 1
+                    block.message.draw_text(block.drawing_text, windowSurface)
+                else:
+                    block.drawing_text = 0
 
             # LAST
             pygame.display.update()
