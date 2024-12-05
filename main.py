@@ -276,6 +276,7 @@ def main():
                 elif isinstance(block, WindBlock):
                     if block.check_touching_player(player):
                         block.push_player(player)
+                    block.particles(levels[GAME.level_idx], GAME.camera.pos)
 
             for block in levels[GAME.level_idx].fog_blocks:
                 block.spread(levels[GAME.level_idx], 30)
@@ -298,8 +299,10 @@ def main():
             for particle in levels[GAME.level_idx].particles:
                 particle.update()
                 particle.pos_particle(GAME.camera.pos)
-                levels[GAME.level_idx].clear_dead_particles()
+                if "wind" in particle.type:
+                    particle.kill_wind_particle(levels[GAME.level_idx])
 
+            levels[GAME.level_idx].clear_dead_particles()
             # Draw rectangles
             windowSurface.fill((255,255,255))
 

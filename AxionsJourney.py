@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 import os, sys
-import random
+import random, math
 
 # Make a UML diagram of all the classes
 # Classes like:
@@ -274,6 +274,9 @@ class Level:
 
     def airjump_particle(self, x, y):
         self.particles.append(Particle(x, y, "airjump"))
+
+    def wind_particle(self, x, y, direction):
+        self.particles.append(Particle(x, y, "wind-"+direction))
 
 
 class LevelEditor:
@@ -699,9 +702,15 @@ class TextBlock(Block):
 
 class WindBlock(Block):
     def __init__(self, x, y, hitbox, blocksize, direction):
-        super().__init__(x, y, (250, 250, 250), hitbox, blocksize)
+        super().__init__(x, y, (247, 247, 247), hitbox, blocksize)
         self.direction = direction
-        self.strength = 0.2
+        if self.direction == "up":
+            self.strength = 0.15
+        elif self.direction == "left" or self.direction == "right":
+            self.strength = 0.3
+        elif self.direction == "down":
+            self.strength = 0.2
+        self.particle_timer = 0
 
     def check_touching_player(self, player):
         self.get_pixel_coords()
@@ -721,6 +730,17 @@ class WindBlock(Block):
             player.velocity[0] -= self.strength
         elif self.direction == "right":
             player.velocity[0] += self.strength
+    
+    def particles(self, level, camera_pos):
+        if self.particle_timer == 0:
+            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620:
+                x = random.randint(self.x*20, self.x*20 + 17)
+                y = random.randint(self.y*20, self.y*20 + 10)
+                level.wind_particle(x, y, self.direction)
+                self.particle_timer = 10
+        else:
+            self.particle_timer -= 1
+        
 
 
 class Paragraph:
@@ -822,6 +842,29 @@ class Particle:
             self.color = (255,175,0)
             self.hitbox = pygame.rect.Rect(0, 0, 3, 3)
             self.lifetime = 40
+
+        elif "wind" in self.type:
+            self.speed = 0.1
+            self.amplitude = 10
+            self.lifetime = 100
+            self.hitbox = pygame.rect.Rect(0, 0, 3, 3)
+            self.color = (210, 210, 210)
+            if "up" in self.type:
+                self.velocity = [0, -1]
+                self.consistant_x = x
+
+            elif "down" in self.type:
+                self.velocity = [0, 1]
+                self.consistant_x = x
+
+            elif "right" in self.type:
+                self.velocity = [1, 0]
+                self.consistant_y = y
+
+            elif "left" in self.type:
+                self.velocity = [-1, 0]
+                self.consistant_y = y
+
     
     def update(self):
         if self.type == "death":
@@ -843,11 +886,37 @@ class Particle:
             self.velocity[0] *= 0.95
             self.velocity[1] *= 0.95
             self.lifetime -= 1
+        elif "wind" in self.type:
+            if "up" in self.type or "down" in self.type:
+                self.y += self.velocity[1]
+                self.x = self.consistant_x + self.amplitude * math.sin(self.speed * self.lifetime)
+                self.lifetime -= 1
+            if "left" in self.type or "right" in self.type:
+                self.x += self.velocity[0]
+                self.y = self.consistant_y + self.amplitude * math.sin(self.speed * self.lifetime)
+                self.lifetime -= 1
 
 
     def pos_particle(self, camera_pos):
         self.hitbox.left = self.x - camera_pos[0]
         self.hitbox.top = self.y - camera_pos[1]
+
+    def kill_wind_particle(self, level):
+        tile_x = int(self.x/20)
+        tile_y = int(self.y/20)
+        tile_idx = tile_x + tile_y*level.level_dict["width"]
+        if "up" in self.type:
+            if level.level_dict["blocklist"][tile_idx] != "O":
+                level.particles.remove(self)
+        elif "down" in self.type:
+            if level.level_dict["blocklist"][tile_idx] != "L":
+                level.particles.remove(self)
+        elif "left" in self.type:
+            if level.level_dict["blocklist"][tile_idx] != "K":
+                level.particles.remove(self)
+        elif "right" in self.type:
+            if level.level_dict["blocklist"][tile_idx] != ";":
+                level.particles.remove(self)
 
     def render(self, surface):
         if self.lifetime > 0:
