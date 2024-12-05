@@ -38,7 +38,7 @@ def main():
 
     pygame.mixer.init()
 
-    hit = pygame.mixer.Sound("hit.wav")
+    hit = pygame.mixer.Sound("sfx/hit.wav")
 
     while True:
         # FIRST

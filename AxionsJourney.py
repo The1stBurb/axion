@@ -44,7 +44,7 @@ class LevelManager:
             "width": dimensions[0],
             "height": dimensions[1],
             "blocklist": level_list
-        }, 20)
+        }, 20, {})
     
     def save_all(self, list_of_levels):
         print("Saving...")
@@ -324,6 +324,7 @@ class PlayerBlock(Block):
         self.WALKSPEED = 1.5
         self.AIRSPEED = 0.5
         self.JUMPHEIGHT = 5.5
+        self.AIRJUMPHEIGHT = 6.5
         self.TERMINALVELOCITY = 10
         self.COYOTETIME = 6
         self.FRICTION = 0.7
@@ -402,7 +403,7 @@ class PlayerBlock(Block):
                     self.released_jump = False
                     self.stretch(False)
                 elif self.airjumps > 0 and self.released_jump:
-                    self.velocity[1] = -self.JUMPHEIGHT
+                    self.velocity[1] = -self.AIRJUMPHEIGHT
                     self.airjumps -= 1
                     self.released_jump = False
                     self.stretch(True)
@@ -680,7 +681,7 @@ class TextBlock(Block):
         self.idx = index
         self.is_writing = False
         self.drawing_text = 0
-        self.prompt_font = pygame.font.Font("PixelSplitter-Bold.ttf", 15)
+        self.prompt_font = pygame.font.Font("fonts/PixelSplitter-Bold.ttf", 15)
     
     def check_touching_player(self, player):
         self.get_pixel_coords()
@@ -747,7 +748,7 @@ class Paragraph:
     def __init__(self, message):
         self.message = message
         self.frames_per_letter = 5
-        self.font = pygame.font.Font("Pixellari.ttf", 30)
+        self.font = pygame.font.Font("fonts/Pixellari.ttf", 30)
 
     def create_text(self, frames):
         idx = 0
