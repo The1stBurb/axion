@@ -747,7 +747,7 @@ class WindBlock(Block):
 class Paragraph:
     def __init__(self, message):
         self.message = message
-        self.frames_per_letter = 5
+        self.frames_per_letter = 4
         self.font = pygame.font.Font("fonts/Pixellari.ttf", 30)
 
     def create_text(self, frames):
@@ -957,6 +957,18 @@ class Camera():
             self.screenshake_intensity -= 1
 
 
+class Blackout:
+    def __init__(self):
+        self.surface = pygame.Surface((600, 600))
+        self.alpha = 0
 
-class SoundManager:
-    pass
+    def fade_out(self, frame, total_frames):
+        self.alpha = 255 - int(frame / total_frames * 255)
+    
+    def fade_in(self, frame, total_frames):
+        self.alpha = int(frame / total_frames * 255)
+    
+    def draw(self, screen):
+        self.surface.fill((0, 0, 0))
+        self.surface.set_alpha(self.alpha)
+        screen.blit(self.surface, (0,0))
