@@ -97,6 +97,7 @@ def main():
 
 
                     elif event.key == K_q:
+                        GAME.level_idx = LEVELEDITOR.level_idx
                         editing = False
             
 

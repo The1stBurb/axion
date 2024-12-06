@@ -13,7 +13,7 @@ windowSurface = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), 0, 32)
 pygame.display.set_caption("Axion's Journey")
 
 
-def run_level(level, GAME, CHECKPOINT, DEATH, FINISH, hit, song):
+def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
 
     pygame.mixer.music.load(song)
 
@@ -21,8 +21,6 @@ def run_level(level, GAME, CHECKPOINT, DEATH, FINISH, hit, song):
 
     player = level.get_player_object()
     fadeout_frames = -1
-
-    BLACKOUT = Blackout()
 
     while True:
         # FIRST
@@ -64,7 +62,7 @@ def run_level(level, GAME, CHECKPOINT, DEATH, FINISH, hit, song):
             elif event.type == FINISH:
                 player = None
                 fadeout_frames = 300
-                pygame.mixer.music.fadeout(5000)
+                pygame.mixer.music.fadeout(6000)
 
         
         if fadeout_frames > -1:
@@ -172,6 +170,7 @@ def main():
 
     LEVELMANAGER = LevelManager()
     GAME = Game()
+    BLACKOUT = Blackout()
 
     levels = LEVELMANAGER.load_all()
     if levels == []:
@@ -188,7 +187,7 @@ def main():
 
     hit = pygame.mixer.Sound("sfx/hit.wav")
 
-    run_level(levels[0], GAME, CHECKPOINT, DEATH, FINISH, hit, "music/Luna Ascension EX - flashygoodness.mp3")
+    run_level(levels[0], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Luna Ascension EX - flashygoodness.mp3")
     
     print("Process completed.")
 

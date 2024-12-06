@@ -324,7 +324,7 @@ class PlayerBlock(Block):
         self.WALKSPEED = 1.5
         self.AIRSPEED = 0.5
         self.JUMPHEIGHT = 5.5
-        self.AIRJUMPHEIGHT = 6.5
+        self.AIRJUMPHEIGHT = 7
         self.TERMINALVELOCITY = 10
         self.COYOTETIME = 6
         self.FRICTION = 0.7
@@ -473,10 +473,11 @@ class PlayerBlock(Block):
 
             
     def update_pos(self, level):
-        self.x += self.velocity[0]
-        self.detect_wall(level)
         self.y += self.velocity[1]
         self.detect_floor_ceiling(level)
+        self.x += self.velocity[0]
+        self.detect_wall(level)
+        
 
 
     def pos_block(self, camera_pos):
