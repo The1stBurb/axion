@@ -21,6 +21,7 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
 
     player = level.get_player_object()
     fadeout_frames = -1
+    fadein_frames = 180
 
     while True:
         # FIRST
@@ -70,10 +71,14 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
             BLACKOUT.fade_out(fadeout_frames, 300)
             if fadeout_frames == 0:
                 break
+        elif fadein_frames > 0:
+            fadein_frames -= 1
+            BLACKOUT.fade_in(fadein_frames, 180)
+    
         
         keys = pygame.key.get_pressed()
 
-        if player != None:
+        if player != None and fadein_frames == 0:
             if player.dead == 0:
                 if not level.is_writing:
                     player.main_loop(keys, level, DEATH, FINISH)
@@ -184,11 +189,53 @@ def main():
 
 
     pygame.mixer.init()
-
     hit = pygame.mixer.Sound("sfx/hit.wav")
 
-    run_level(levels[0], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Luna Ascension EX - flashygoodness.mp3")
+    # LOAD IN
+    pygame.mixer.music.load("music/Adventure - Disasterpiece.mp3")
+    pygame.mixer.music.play(-1)
+
+    pygame_logo = pygame.image.load("img/Pygame_logo.png")
+    pygame_logo = pygame.transform.scale(pygame_logo, (500, 140))
+
+    WHITE = (255, 255, 255)
+
+    for x in range(80):
+        windowSurface.fill(WHITE)
+        pygame.display.update()
+        mainClock.tick(60)
     
+    for x in range(20):
+        windowSurface.fill(WHITE)
+        pygame_logo.set_alpha(x/20*255)
+        windowSurface.blit(pygame_logo, (50, 230))
+        pygame.display.update()
+        mainClock.tick(60)
+    
+    for x in range(60):
+        windowSurface.fill(WHITE)
+        windowSurface.blit(pygame_logo, (50, 230))
+        pygame.display.update()
+        mainClock.tick(60)
+    
+    for x in range(30, 0, -1):
+        windowSurface.fill(WHITE)
+        pygame_logo.set_alpha(x/30*255)
+        windowSurface.blit(pygame_logo, (50, 230))
+        pygame.display.update()
+        mainClock.tick(60)
+    
+
+    for x in range(80):
+        windowSurface.fill(WHITE)
+        pygame.display.update()
+        mainClock.tick(60)
+
+
+
+    run_level(levels[0], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Luna Ascension EX - flashygoodness.mp3")
+    run_level(levels[1], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Cheat Codes - Nitro Fun.mp3")
+
     print("Process completed.")
 
 main()

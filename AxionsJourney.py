@@ -183,44 +183,44 @@ class Level:
         for idx, block in enumerate(self.level_dict["blocklist"]):
             if block == "B":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
-                self.block_object_list.append(RegBlock(idx%width, idx//width, block_hitbox, self.block_size))
+                self.block_object_list.append(RegBlock(idx%width, idx//width, block_hitbox, self.block_size, idx))
             elif block == "P":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
                 char = pygame.Rect(0, 0, self.block_size, self.block_size)
-                new_player = PlayerBlock(self.block_size*(idx%width), self.block_size*(idx//width), block_hitbox, self.block_size, char)
+                new_player = PlayerBlock(self.block_size*(idx%width), self.block_size*(idx//width), block_hitbox, self.block_size, char, idx)
                 self.player_objects.append(new_player)
             elif block == "C":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
-                checkpoint = CheckpointBlock(idx%width, idx//width, block_hitbox, self.block_size)
+                checkpoint = CheckpointBlock(idx%width, idx//width, block_hitbox, self.block_size, idx)
                 self.block_object_list.append(checkpoint)
             elif block == "J":
                 block_hitbox = pygame.Rect(0, 0, 10, 10)
-                self.block_object_list.append(AirJumpBlock(idx%width, idx//width, block_hitbox))
+                self.block_object_list.append(AirJumpBlock(idx%width, idx//width, block_hitbox, idx))
             elif block == "X":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
-                self.block_object_list.append(DangerBlock(idx%width, idx//width, block_hitbox, self.block_size))
+                self.block_object_list.append(DangerBlock(idx%width, idx//width, block_hitbox, self.block_size, idx))
             elif block == "Z":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
-                self.block_object_list.append(ExitBlock(idx%width, idx//width, block_hitbox, self.block_size))
+                self.block_object_list.append(ExitBlock(idx%width, idx//width, block_hitbox, self.block_size, idx))
             elif block == "F":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
-                self.fog_blocks.append(FogBlock(idx%width, idx//width, block_hitbox, self.block_size, idx, 120))
+                self.fog_blocks.append(FogBlock(idx%width, idx//width, block_hitbox, self.block_size, idx, 30))
                 self.fog_idxes.append(idx)
             elif block == "N":
                 self.add_story_block(idx, width)
 
             elif block == "O":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
-                self.block_object_list.append(WindBlock(idx%width, idx//width, block_hitbox, self.block_size, "up"))
+                self.block_object_list.append(WindBlock(idx%width, idx//width, block_hitbox, self.block_size, "up", idx))
             elif block == "L":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
-                self.block_object_list.append(WindBlock(idx%width, idx//width, block_hitbox, self.block_size, "down"))
+                self.block_object_list.append(WindBlock(idx%width, idx//width, block_hitbox, self.block_size, "down", idx))
             elif block == "K":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
-                self.block_object_list.append(WindBlock(idx%width, idx//width, block_hitbox, self.block_size, "left"))
+                self.block_object_list.append(WindBlock(idx%width, idx//width, block_hitbox, self.block_size, "left", idx))
             elif block == ";":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
-                self.block_object_list.append(WindBlock(idx%width, idx//width, block_hitbox, self.block_size, "right"))
+                self.block_object_list.append(WindBlock(idx%width, idx//width, block_hitbox, self.block_size, "right", idx))
             
     
     def get_str_of_blocks(self):
@@ -297,12 +297,13 @@ class LevelEditor:
 
 
 class Block:
-    def __init__(self, x, y, color, hitbox, blocksize):
+    def __init__(self, x, y, color, hitbox, blocksize, idx):
         self.x = x
         self.y = y
         self.color = color
         self.hitbox = hitbox
         self.blocksize = blocksize
+        self.idx = idx
 
     def pos_block(self, camera_pos):
         self.hitbox.left = self.x*self.blocksize - camera_pos[0]
@@ -315,8 +316,8 @@ class Block:
 
 
 class PlayerBlock(Block):
-    def __init__(self, x, y, hitbox, blocksize, character):
-        super().__init__(x, y, [80,80,255], hitbox, blocksize)
+    def __init__(self, x, y, hitbox, blocksize, character, idx):
+        super().__init__(x, y, [80,80,255], hitbox, blocksize, idx)
 
         self.character = character
 
@@ -412,7 +413,7 @@ class PlayerBlock(Block):
             self.released_jump = True
 
     def detect_wall(self, level):
-        if self.get_tile_at(self.x, self.y, level) == "B" or self.get_tile_at(self.x, self.y+19, level) == "B" or self.get_tile_at(self.x+19, self.y, level) == "B" or self.get_tile_at(self.x+19, self.y+19, level) == "B":
+        if self.get_tile_at(self.x, self.y, level) == "B" or self.get_tile_at(self.x, self.y+19.99, level) == "B" or self.get_tile_at(self.x+19.99, self.y, level) == "B" or self.get_tile_at(self.x+19.99, self.y+19.99, level) == "B":
             if self.velocity[0] > 0:
                 self.x -= (self.x % 20)
             else:
@@ -421,7 +422,7 @@ class PlayerBlock(Block):
 
 
     def detect_floor_ceiling(self, level):
-        if self.get_tile_at(self.x, self.y, level) == "B" or self.get_tile_at(self.x, self.y+20, level) == "B" or self.get_tile_at(self.x+19, self.y, level) == "B" or self.get_tile_at(self.x+19, self.y+20, level) == "B":
+        if self.get_tile_at(self.x, self.y, level) == "B" or self.get_tile_at(self.x, self.y+19.99, level) == "B" or self.get_tile_at(self.x+19.99, self.y, level) == "B" or self.get_tile_at(self.x+19.99, self.y+19.99, level) == "B":
             if self.velocity[1] > 0:
                 self.y -= (self.y % 20)
                 if self.airtime > 2:
@@ -523,17 +524,18 @@ class PlayerBlock(Block):
 
 
 class RegBlock(Block):
-    def __init__(self, x, y, hitbox, blocksize):
-        super().__init__(x, y, (0,0,0), hitbox, blocksize)
+    def __init__(self, x, y, hitbox, blocksize, idx):
+        super().__init__(x, y, (0,0,0), hitbox, blocksize, idx)
 
 class DangerBlock(Block):
-    def __init__(self, x, y, hitbox, blocksize):
-        super().__init__(x, y, (255,40,121), hitbox, blocksize)
+    def __init__(self, x, y, hitbox, blocksize, idx):
+        super().__init__(x, y, (255,40,121), hitbox, blocksize, idx)
         self.particle_timer = 5
 
     def particles(self, level, camera_pos):
         if self.particle_timer == 0:
-            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620:
+            block_above = level.level_dict["blocklist"][self.idx-level.level_dict["width"]]
+            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620 and block_above != "X":
                 x = random.randint(self.x*20, self.x*20 + 17)
                 y = random.randint(self.y*20, self.y*20 + 10)
                 level.danger_particle(x, y)
@@ -542,8 +544,8 @@ class DangerBlock(Block):
             self.particle_timer -= 1
 
 class ExitBlock(Block):
-    def __init__(self, x, y, hitbox, blocksize):
-        super().__init__(x, y, [255, 0, 0], hitbox, blocksize)
+    def __init__(self, x, y, hitbox, blocksize, idx):
+        super().__init__(x, y, [255, 0, 0], hitbox, blocksize, idx)
         self.particle_timer = 0
 
     def change_color(self):
@@ -576,8 +578,8 @@ class ExitBlock(Block):
             self.particle_timer -= 1
     
 class CheckpointBlock(Block):
-    def __init__(self, x, y, hitbox, blocksize):
-        super().__init__(x, y, (0, 0, 0), hitbox, blocksize)
+    def __init__(self, x, y, hitbox, blocksize, idx):
+        super().__init__(x, y, (0, 0, 0), hitbox, blocksize, idx)
         self.claimed = False
         self.color = [0, 100, 0]
         self.buffer = 0
@@ -607,8 +609,8 @@ class CheckpointBlock(Block):
         self.p_y = self.y * 20
     
 class AirJumpBlock(Block):
-    def __init__(self, x, y, hitbox):
-        super().__init__(x, y, (255,175,0), hitbox, 10)
+    def __init__(self, x, y, hitbox, idx):
+        super().__init__(x, y, (255,175,0), hitbox, 10, idx)
         self.claimed_frames = 0
         self.particle_timer = 0
     
@@ -649,9 +651,8 @@ class AirJumpBlock(Block):
 
 class FogBlock(Block):
     def __init__(self, x, y, hitbox, blocksize, idx, wait_time):
-        super().__init__(x, y, (50,0,22), hitbox, blocksize)
+        super().__init__(x, y, (50,0,22), hitbox, blocksize, idx)
         self.wait_time = wait_time
-        self.idx = idx
 
     def spread(self, level, wait_time):
         assert isinstance(level, Level)
@@ -676,10 +677,9 @@ class FogBlock(Block):
             self.wait_time -= 1
 
 class TextBlock(Block):
-    def __init__(self, x, y, hitbox, blocksize, message, index):
-        super().__init__(x, y, (250, 250, 150), hitbox, blocksize)
+    def __init__(self, x, y, hitbox, blocksize, message, idx):
+        super().__init__(x, y, (250, 250, 150), hitbox, blocksize, idx)
         self.message = Paragraph(message)
-        self.idx = index
         self.is_writing = False
         self.drawing_text = 0
         self.prompt_font = pygame.font.Font("fonts/PixelSplitter-Bold.ttf", 15)
@@ -703,8 +703,8 @@ class TextBlock(Block):
         screen.blit(press_e, press_e_rect)
 
 class WindBlock(Block):
-    def __init__(self, x, y, hitbox, blocksize, direction):
-        super().__init__(x, y, (247, 247, 247), hitbox, blocksize)
+    def __init__(self, x, y, hitbox, blocksize, direction, idx):
+        super().__init__(x, y, (247, 247, 247), hitbox, blocksize, idx)
         self.direction = direction
         if self.direction == "up":
             self.strength = 0.15
