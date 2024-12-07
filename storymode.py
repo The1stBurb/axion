@@ -9,7 +9,7 @@ pygame.init()
 
 WINDOWWIDTH = 600
 WINDOWHEIGHT = 600
-windowSurface = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), 0, 32)
+windowSurface = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), flags=pygame.SCALED, depth=32, vsync=1)
 pygame.display.set_caption("Axion's Journey")
 
 
@@ -22,6 +22,17 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
     player = level.get_player_object()
     fadeout_frames = -1
     fadein_frames = 180
+
+    for x in range(30):
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+
+        BLACKOUT.draw(windowSurface)
+
+        pygame.display.update()
+        mainClock.tick(60)
 
     while True:
         # FIRST
@@ -78,7 +89,7 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
         
         keys = pygame.key.get_pressed()
 
-        if player != None and fadein_frames == 0:
+        if player != None and fadein_frames  < 90:
             if player.dead == 0:
                 if not level.is_writing:
                     player.main_loop(keys, level, DEATH, FINISH)
@@ -191,6 +202,11 @@ def main():
     pygame.mixer.init()
     hit = pygame.mixer.Sound("sfx/hit.wav")
 
+
+
+
+
+
     # LOAD IN
     pygame.mixer.music.load("music/Adventure - Disasterpiece.mp3")
     pygame.mixer.music.play(-1)
@@ -200,25 +216,25 @@ def main():
 
     WHITE = (255, 255, 255)
 
-    for x in range(80):
+    for x in range(80):                     # blank screen
         windowSurface.fill(WHITE)
         pygame.display.update()
         mainClock.tick(60)
     
-    for x in range(20):
+    for x in range(20):                     # fade in pygame logo
         windowSurface.fill(WHITE)
         pygame_logo.set_alpha(x/20*255)
         windowSurface.blit(pygame_logo, (50, 230))
         pygame.display.update()
         mainClock.tick(60)
     
-    for x in range(60):
+    for x in range(60):                     # show pygame logo 
         windowSurface.fill(WHITE)
         windowSurface.blit(pygame_logo, (50, 230))
         pygame.display.update()
         mainClock.tick(60)
     
-    for x in range(30, 0, -1):
+    for x in range(30, 0, -1):              # fade out pygame logo
         windowSurface.fill(WHITE)
         pygame_logo.set_alpha(x/30*255)
         windowSurface.blit(pygame_logo, (50, 230))
@@ -226,16 +242,214 @@ def main():
         mainClock.tick(60)
     
 
-    for x in range(80):
+    for x in range(70):                     # blank screen
         windowSurface.fill(WHITE)
+        pygame.display.update()
+        mainClock.tick(60)
+
+    # BUTTONS AND LOGO
+    clicked = False
+
+    title_font = pygame.font.Font("fonts/Poxast-R9Jjl.ttf", 30)
+    title_txt = title_font.render("Axion's Journey", False, (10, 10, 150))
+    title_rect = title_txt.get_rect()
+    title_rect.center = (300, 700)
+    t_pos = [300, 700]
+
+    
+    button_img = pygame.image.load("img/button.png")
+    img_rect = button_img.get_rect()
+    img_rect.center = (300, 700)
+
+    button_font = pygame.font.Font("fonts/PixelSplitter-Bold.ttf", 35)
+    button_txt = button_font.render("BEGIN", False, (0, 0, 0))
+    button_rect = button_txt.get_rect()
+    button_rect.center = (300, 700)
+    b_pos = [300, 850]
+    
+    hover = False
+
+    while not clicked:
+
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            
+            if event.type == MOUSEBUTTONDOWN:
+                if hover:
+                    clicked = True
+
+
+
+
+
+
+        t_speed = (150 - t_pos[1])/20
+        if t_speed < -2:
+            t_speed = -2
+
+        b_speed = (300 - b_pos[1])/20
+        if b_speed < -2:
+            b_speed = -2
+
+        t_pos[1] += t_speed
+        b_pos[1] += b_speed
+        
+        raw_mouse_pos = pygame.mouse.get_pos()
+        mouse_pos = ((raw_mouse_pos[0]-300)/10, (raw_mouse_pos[1]-300)/10)
+
+        title_rect.center = (t_pos[0] + mouse_pos[0], t_pos[1] + mouse_pos[1])
+        img_rect.center = (b_pos[0] + mouse_pos[0]*0.9, b_pos[1] + mouse_pos[1]*0.9)
+        button_rect.center = (b_pos[0] + mouse_pos[0]*0.9, b_pos[1] + mouse_pos[1]*0.9)
+
+        if raw_mouse_pos[0] > img_rect.left and raw_mouse_pos[0] < img_rect.right and raw_mouse_pos[1] > img_rect.top and raw_mouse_pos[1] < img_rect.bottom:
+            hover = True
+        else:
+            hover = False
+
+
+
+
+
+        windowSurface.fill(WHITE)
+
+        windowSurface.blit(title_txt, title_rect)
+        windowSurface.blit(button_img, img_rect)
+        windowSurface.blit(button_txt, button_rect)
+
+        pygame.display.update()
+        mainClock.tick(60)
+        
+
+    pygame.mixer.music.fadeout(5000)
+
+    for x in range(300):
+
+        BLACKOUT.fade_out(300-x, 300)
+
+        windowSurface.fill(WHITE)
+
+        windowSurface.blit(title_txt, title_rect)
+        windowSurface.blit(button_img, img_rect)
+        windowSurface.blit(button_txt, button_rect)
+        BLACKOUT.draw(windowSurface)
+
+        pygame.display.update()
+        mainClock.tick(60)
+    
+
+    for x in range(60):
+        BLACKOUT.draw(windowSurface)
+
         pygame.display.update()
         mainClock.tick(60)
 
 
 
+
+    '''
+
+
     run_level(levels[0], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Luna Ascension EX - flashygoodness.mp3")
     run_level(levels[1], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Cheat Codes - Nitro Fun.mp3")
 
-    print("Process completed.")
+    
+    
+    '''
+
+
+
+
+    # CREDITS
+
+    credit_dict = {
+        "heading1": "Created by Tyler Watts",
+        "heading2": "Art",
+        "Storyboards": "Tyler Watts",
+
+        "heading3": "Music",
+        "Adventure": "Disasterpiece",
+        "Luna Ascension EX": "flashygoodness",
+        "Sorrow": "flashygoodness",
+        "Eldrich Crisis": "flashygoodness",
+        "Cheat Codes": "Nitro Fun",
+        "Commando Steve": "Bossfight",
+        "Oceanic Breeze": "flashygoodness",
+        "Pursuit": "Shirobon",
+        "Annihilate": "Excision & Far Too Loud",
+        "Formed by Glaciers": "Kubbi",
+        "Once Again": "Matsirt",
+        "The Moon": "Jake Kaufman",
+
+
+    }
+
+    heading_font = pygame.font.Font("fonts/PixelSplitter-Bold.ttf", 30)
+    small_font = pygame.font.Font("fonts/Pixellari.ttf", 20)
+
+    title_txt = title_font.render("Axion's Journey", False, WHITE)
+    title_rect = title_txt.get_rect()
+    title_rect.midtop = (300, 730)
+
+    credit_items = []
+    credit_rects = []
+    for idx, item in enumerate(credit_dict):
+
+        if "heading" in item:
+            new_item = heading_font.render(credit_dict[item], 0, WHITE)
+            new_item_rect = new_item.get_rect()
+            new_item_rect.center = (300, 700+idx*60)
+            credit_items.append(new_item)
+            credit_rects.append(new_item_rect)
+        else:
+            new_item1 = small_font.render(item, 0, WHITE)
+            new_item_rect1 = new_item1.get_rect()
+            new_item_rect1.midright = (260, 740+idx*60)
+            new_item2 = small_font.render(credit_dict[item], 0, WHITE)
+            new_item_rect2 = new_item2.get_rect()
+            new_item_rect2.midleft = (340, 740+idx*60)
+
+
+            credit_items.append(new_item1)
+            credit_items.append(new_item2)
+            credit_rects.append(new_item_rect1)
+            credit_rects.append(new_item_rect2)
+
+
+    pygame.mixer.music.load("music/The Moon - Jake Kaufman.mp3")
+    pygame.mixer.music.play()
+
+    counter = 0
+
+    for y in range(0, (len(credit_dict) * 60) + 1000):
+
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+
+
+        counter += 1
+        if counter == 3:
+            counter = 0
+            title_rect.top -= 1
+            for rect in credit_rects:
+                rect.top -= 1
+
+        
+
+        
+        windowSurface.fill((0, 0, 0))
+
+        windowSurface.blit(title_txt, title_rect)
+
+        for idx, item in enumerate(credit_items):
+            windowSurface.blit(item, credit_rects[idx])
+
+        pygame.display.update()
+        mainClock.tick(60)
+        
+
 
 main()
