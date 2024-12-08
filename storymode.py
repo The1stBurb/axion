@@ -382,6 +382,11 @@ def main():
         "Once Again": "Matsirt",
         "The Moon": "Jake Kaufman",
 
+        "heading4": "Inspiration",
+        "Celeste": "Maddy Makes Games",
+        "Just Shapes & Beats": "Berzerk Studio",
+        "Rivals of Aether": "Aether Studios"
+
 
     }
 
@@ -390,7 +395,7 @@ def main():
 
     title_txt = title_font.render("Axion's Journey", False, WHITE)
     title_rect = title_txt.get_rect()
-    title_rect.midtop = (300, 730)
+    title_rect.midtop = (300, 630)
 
     credit_items = []
     credit_rects = []
@@ -399,7 +404,7 @@ def main():
         if "heading" in item:
             new_item = heading_font.render(credit_dict[item], 0, WHITE)
             new_item_rect = new_item.get_rect()
-            new_item_rect.center = (300, 700+idx*60)
+            new_item_rect.center = (300, 740+idx*60)
             credit_items.append(new_item)
             credit_rects.append(new_item_rect)
         else:
@@ -422,7 +427,7 @@ def main():
 
     counter = 0
 
-    for y in range(0, (len(credit_dict) * 60) + 1000):
+    while credit_rects[-1].bottom > 0:
 
         for event in pygame.event.get():
             if event.type == QUIT:
