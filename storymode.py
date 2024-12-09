@@ -348,15 +348,23 @@ def main():
 
 
 
-    '''
+
 
 
     run_level(levels[0], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Luna Ascension EX - flashygoodness.mp3")
-    run_level(levels[1], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Cheat Codes - Nitro Fun.mp3")
 
-    
-    
-    '''
+    # CUTSCENE HERE!!! (intro and panic)
+
+    run_level(levels[1], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Cheat Codes - Nitro Fun.mp3")
+    run_level(levels[2], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Commando Steve - Bossfight.mp3")
+    #run_level(levels[3], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Oceanic Breeze - flashygoodness.mp3")
+
+    # CUTSCENE HERE!!! (oh no, hes gonna get me)
+
+    #run_level(levels[4], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Annihilate (edited).mp3")
+
+    # CUTSCENE HERE!!! (the longest one, quaternius is saved!!!)
+
 
 
 

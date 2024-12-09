@@ -9,7 +9,7 @@ pygame.init()
 
 WINDOWWIDTH = 600
 WINDOWHEIGHT = 600
-windowSurface = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), 0, 32)
+windowSurface = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), flags=pygame.SCALED, depth=32, vsync=1)
 pygame.display.set_caption("Axion's Journey")
 
 def main():
