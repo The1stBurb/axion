@@ -34,7 +34,6 @@ def main():
     DEATH = pygame.USEREVENT + 2
     FINISH = pygame.USEREVENT + 3
 
-    drawing_text = 0
 
     pygame.mixer.init()
 
@@ -66,6 +65,8 @@ def main():
                         LEVELEDITOR.level_idx += 1
                         if LEVELEDITOR.level_idx >= len(levels):
                             LEVELEDITOR.level_idx = 0
+                        
+
                     # change brush
                     elif event.key == K_b:
                         LEVELEDITOR.change_brush("B")

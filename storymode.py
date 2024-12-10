@@ -215,27 +215,28 @@ def main():
     pygame_logo = pygame.transform.scale(pygame_logo, (500, 140))
 
     WHITE = (255, 255, 255)
+    SKY = (192, 253, 255)
 
     for x in range(80):                     # blank screen
-        windowSurface.fill(WHITE)
+        windowSurface.fill(SKY)
         pygame.display.update()
         mainClock.tick(60)
     
     for x in range(20):                     # fade in pygame logo
-        windowSurface.fill(WHITE)
+        windowSurface.fill(SKY)
         pygame_logo.set_alpha(x/20*255)
         windowSurface.blit(pygame_logo, (50, 230))
         pygame.display.update()
         mainClock.tick(60)
     
     for x in range(60):                     # show pygame logo 
-        windowSurface.fill(WHITE)
+        windowSurface.fill(SKY)
         windowSurface.blit(pygame_logo, (50, 230))
         pygame.display.update()
         mainClock.tick(60)
     
     for x in range(30, 0, -1):              # fade out pygame logo
-        windowSurface.fill(WHITE)
+        windowSurface.fill(SKY)
         pygame_logo.set_alpha(x/30*255)
         windowSurface.blit(pygame_logo, (50, 230))
         pygame.display.update()
@@ -243,23 +244,40 @@ def main():
     
 
     for x in range(70):                     # blank screen
-        windowSurface.fill(WHITE)
+        windowSurface.fill(SKY)
         pygame.display.update()
         mainClock.tick(60)
 
-    # BUTTONS AND LOGO
-    clicked = False
+    # BUTTONS AND LOGO AND TITLE PARALAX
+
+    img_back = pygame.image.load("img/Title_Image-3.png")
+    img_back = pygame.transform.scale(img_back, (640, 640))
+    img_back_rect = img_back.get_rect()
+
+    img_midback = pygame.image.load("img/Title_Image-4.png")
+    img_midback = pygame.transform.scale(img_midback, (640, 640))
+    img_midback_rect = img_midback.get_rect()
+
+    img_midfront = pygame.image.load("img/Title_Image-2.png")
+    img_midfront = pygame.transform.scale(img_midfront, (640, 640))
+    img_midfront_rect = img_midfront.get_rect()
+
+    img_front = pygame.image.load("img/Title_Image-1.png")
+    img_front = pygame.transform.scale(img_front, (640, 640))
+    img_front_rect = img_front.get_rect()
+    
+
 
     title_font = pygame.font.Font("fonts/Poxast-R9Jjl.ttf", 30)
     title_txt = title_font.render("Axion's Journey", False, (10, 10, 150))
     title_rect = title_txt.get_rect()
-    title_rect.center = (300, 700)
+    title_rect.center = (300, 650)
     t_pos = [300, 700]
 
     
     button_img = pygame.image.load("img/button.png")
-    img_rect = button_img.get_rect()
-    img_rect.center = (300, 700)
+    btn_img_rect = button_img.get_rect()
+    btn_img_rect.center = (300, 700)
 
     button_font = pygame.font.Font("fonts/PixelSplitter-Bold.ttf", 35)
     button_txt = button_font.render("BEGIN", False, (0, 0, 0))
@@ -268,7 +286,10 @@ def main():
     b_pos = [300, 850]
     
     hover = False
+    clicked = False
 
+
+    time = 0
     while not clicked:
 
         for event in pygame.event.get():
@@ -285,7 +306,7 @@ def main():
 
 
 
-        t_speed = (150 - t_pos[1])/20
+        t_speed = (100 - t_pos[1])/20
         if t_speed < -2:
             t_speed = -2
 
@@ -300,26 +321,50 @@ def main():
         mouse_pos = ((raw_mouse_pos[0]-300)/10, (raw_mouse_pos[1]-300)/10)
 
         title_rect.center = (t_pos[0] + mouse_pos[0], t_pos[1] + mouse_pos[1])
-        img_rect.center = (b_pos[0] + mouse_pos[0]*0.9, b_pos[1] + mouse_pos[1]*0.9)
+        btn_img_rect.center = (b_pos[0] + mouse_pos[0]*0.9, b_pos[1] + mouse_pos[1]*0.9)
         button_rect.center = (b_pos[0] + mouse_pos[0]*0.9, b_pos[1] + mouse_pos[1]*0.9)
 
-        if raw_mouse_pos[0] > img_rect.left and raw_mouse_pos[0] < img_rect.right and raw_mouse_pos[1] > img_rect.top and raw_mouse_pos[1] < img_rect.bottom:
+
+
+
+        img_back_rect.center = (300 + mouse_pos[0]*0.5, 300 + mouse_pos[1]*0.5)
+        img_midback_rect.center = (300 + mouse_pos[0]*0.6, 300 + mouse_pos[1]*0.56)
+        img_midfront_rect.center = (300 + mouse_pos[0]*0.7, 300 + mouse_pos[1]*0.7)
+        img_front_rect.center = (300 + mouse_pos[0]*0.85, 300 + mouse_pos[1]*0.85)
+
+
+        alpha = time
+        if alpha > 255:
+            alpha = 255
+
+        img_back.set_alpha(alpha)
+        img_midback.set_alpha(alpha)
+        img_midfront.set_alpha(alpha)
+        img_front.set_alpha(alpha)
+
+
+        if raw_mouse_pos[0] > btn_img_rect.left and raw_mouse_pos[0] < btn_img_rect.right and raw_mouse_pos[1] > btn_img_rect.top and raw_mouse_pos[1] < btn_img_rect.bottom:
             hover = True
         else:
             hover = False
 
 
 
+        windowSurface.fill(SKY)
 
+        windowSurface.blit(img_back, img_back_rect)
+        windowSurface.blit(img_midback, img_midback_rect)
+        windowSurface.blit(img_midfront, img_midfront_rect)
+        windowSurface.blit(img_front, img_front_rect)
 
-        windowSurface.fill(WHITE)
 
         windowSurface.blit(title_txt, title_rect)
-        windowSurface.blit(button_img, img_rect)
+        windowSurface.blit(button_img, btn_img_rect)
         windowSurface.blit(button_txt, button_rect)
 
         pygame.display.update()
         mainClock.tick(60)
+        time += 1
         
 
     pygame.mixer.music.fadeout(5000)
@@ -328,10 +373,16 @@ def main():
 
         BLACKOUT.fade_out(300-x, 300)
 
-        windowSurface.fill(WHITE)
+        windowSurface.fill(SKY)
+
+        windowSurface.blit(img_back, img_back_rect)
+        windowSurface.blit(img_midback, img_midback_rect)
+        windowSurface.blit(img_midfront, img_midfront_rect)
+        windowSurface.blit(img_front, img_front_rect)
+
 
         windowSurface.blit(title_txt, title_rect)
-        windowSurface.blit(button_img, img_rect)
+        windowSurface.blit(button_img, btn_img_rect)
         windowSurface.blit(button_txt, button_rect)
         BLACKOUT.draw(windowSurface)
 
@@ -344,9 +395,6 @@ def main():
 
         pygame.display.update()
         mainClock.tick(60)
-
-
-
 
 
 
@@ -364,7 +412,6 @@ def main():
     #run_level(levels[4], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Annihilate (edited).mp3")
 
     # CUTSCENE HERE!!! (the longest one, quaternius is saved!!!)
-
 
 
 
