@@ -50,9 +50,14 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
 
                 if event.key == K_e:
                     if level.is_writing:
-                        level.is_writing = False
                         for block in level.text_blocks:
-                            block.is_writing = False
+                            if block.is_writing:
+                                if block.drawing_text < len(block.message.message) * block.message.frames_per_letter:
+                                    block.drawing_text = 9999
+                                else:
+                                    level.is_writing = False
+                                    block.is_writing = False
+                                break  
                     else:
                         for block in level.text_blocks:
                             if block.check_touching_player(player) and not block.is_writing:
@@ -422,6 +427,7 @@ def main():
         "heading1": "Created by Tyler Watts",
         "heading2": "Art",
         "Storyboards": "Tyler Watts",
+        "Animations": "Tyler Watts",
 
         "heading3": "Music",
         "Adventure": "Disasterpiece",
