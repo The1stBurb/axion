@@ -56,7 +56,8 @@ def main():
                         levels.append(LEVELMANAGER.add_level(len(levels)))
                         LEVELEDITOR.level_idx = len(levels)-1
                     elif event.key == K_r:
-                        levels[LEVELEDITOR.level_idx] = LEVELMANAGER.add_level(LEVELEDITOR.level_idx)
+                        if K_4 in pygame.key.get_pressed() and K_5 in pygame.key.get_pressed():
+                            levels[LEVELEDITOR.level_idx] = LEVELMANAGER.add_level(LEVELEDITOR.level_idx)
                     elif event.key == K_h:
                         LEVELEDITOR.level_idx -= 1
                         if LEVELEDITOR.level_idx < 0:
@@ -276,8 +277,6 @@ def main():
                 elif isinstance(block, DangerBlock):
                     block.particles(levels[GAME.level_idx], GAME.camera.pos)
                 elif isinstance(block, WindBlock):
-                    if block.check_touching_player(player):
-                        block.push_player(player)
                     block.particles(levels[GAME.level_idx], GAME.camera.pos)
 
             for block in levels[GAME.level_idx].fog_blocks:

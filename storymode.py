@@ -118,9 +118,6 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
             elif isinstance(block, DangerBlock):
                 block.particles(level, GAME.camera.pos)
             elif isinstance(block, WindBlock):
-                if player != None:
-                    if block.check_touching_player(player):
-                        block.push_player(player)
                 block.particles(level, GAME.camera.pos)
 
         for block in level.fog_blocks:

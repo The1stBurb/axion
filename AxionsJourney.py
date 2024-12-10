@@ -351,6 +351,8 @@ class PlayerBlock(Block):
         self.particle_timer = 0
         self.dead = 0
 
+        self.wind_push = {"up": False, "down": False, "left": False, "right": False}
+
         self.width = 20
         self.height = 20
 
@@ -358,7 +360,9 @@ class PlayerBlock(Block):
         self.fall()
         self.walk(buttons_pressed, level)
         self.jump(buttons_pressed)
+        self.pushed_by_wind()
         self.update_pos(level)
+        self.get_touching_wind(level)
         self.squarify()
         self.check_touching_danger(level, death_event)
         self.check_exit(level, finish_event)
@@ -472,6 +476,22 @@ class PlayerBlock(Block):
             self.height += 1
             self.character.inflate_ip(-1, 1)
 
+    def get_touching_wind(self, level):
+        self.wind_push["up"] = self.get_tile_at(self.x, self.y, level) == "O" or self.get_tile_at(self.x, self.y+19.99, level) == "O" or self.get_tile_at(self.x+19.99, self.y, level) == "O" or self.get_tile_at(self.x+19.99, self.y+19.99, level) == "O"
+        self.wind_push["down"] = self.get_tile_at(self.x, self.y, level) == "L" or self.get_tile_at(self.x, self.y+19.99, level) == "L" or self.get_tile_at(self.x+19.99, self.y, level) == "L" or self.get_tile_at(self.x+19.99, self.y+19.99, level) == "L"
+        self.wind_push["left"] = self.get_tile_at(self.x, self.y, level) == "K" or self.get_tile_at(self.x, self.y+19.99, level) == "K" or self.get_tile_at(self.x+19.99, self.y, level) == "K" or self.get_tile_at(self.x+19.99, self.y+19.99, level) == "K"
+        self.wind_push["right"] = self.get_tile_at(self.x, self.y, level) == ";" or self.get_tile_at(self.x, self.y+19.99, level) == ";" or self.get_tile_at(self.x+19.99, self.y, level) == ";" or self.get_tile_at(self.x+19.99, self.y+19.99, level) == ";"
+
+    def pushed_by_wind(self):
+        if self.wind_push["up"]:
+            self.velocity[1] -= 0.5
+        if self.wind_push["down"]:
+            self.velocity[1] += 0.3
+        if self.wind_push["left"]:
+            self.velocity[0] -= 0.45
+        if self.wind_push["right"]:
+            self.velocity[0] += 0.45
+
             
     def update_pos(self, level):
         self.y += self.velocity[1]
@@ -494,12 +514,12 @@ class PlayerBlock(Block):
         self.velocity = [0, 0]
 
     def check_touching_danger(self, level, event):
-        if self.get_tile_at(self.x, self.y, level) == "X" or self.get_tile_at(self.x, self.y+19, level) == "X" or self.get_tile_at(self.x+19, self.y, level) == "X" or self.get_tile_at(self.x+19, self.y+19, level) == "X":
+        if self.get_tile_at(self.x, self.y, level) == "X" or self.get_tile_at(self.x, self.y+19.99, level) == "X" or self.get_tile_at(self.x+19.99, self.y, level) == "X" or self.get_tile_at(self.x+19.99, self.y+19.99, level) == "X":
             pygame.event.post(pygame.event.Event(event))
             self.dead = 120
 
     def check_exit(self, level, event):
-        if self.get_tile_at(self.x, self.y, level) == "Z" or self.get_tile_at(self.x, self.y+19, level) == "Z" or self.get_tile_at(self.x+19, self.y, level) == "Z" or self.get_tile_at(self.x+19, self.y+19, level) == "Z":
+        if self.get_tile_at(self.x, self.y, level) == "Z" or self.get_tile_at(self.x, self.y+19.99, level) == "Z" or self.get_tile_at(self.x+19.99, self.y, level) == "Z" or self.get_tile_at(self.x+19.99, self.y+19.99, level) == "Z":
             pygame.event.post(pygame.event.Event(event))
 
 
@@ -513,6 +533,7 @@ class PlayerBlock(Block):
         elif self.airjumps >= 3:
             self.color = self.MORE_COLOR.copy()
         pygame.draw.rect(windowSurface, self.color, self.character)
+
 
     @staticmethod
     def get_tile_at(x, y, level):
@@ -535,7 +556,7 @@ class DangerBlock(Block):
     def particles(self, level, camera_pos):
         if self.particle_timer == 0:
             block_above = level.level_dict["blocklist"][self.idx-level.level_dict["width"]]
-            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620 and block_above != "X":
+            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620 and block_above != "X" and block_above != "B":
                 x = random.randint(self.x*20, self.x*20 + 17)
                 y = random.randint(self.y*20, self.y*20 + 10)
                 level.danger_particle(x, y)
@@ -706,32 +727,16 @@ class WindBlock(Block):
     def __init__(self, x, y, hitbox, blocksize, direction, idx):
         super().__init__(x, y, (247, 247, 247), hitbox, blocksize, idx)
         self.direction = direction
-        if self.direction == "up":
-            self.strength = 0.15
-        elif self.direction == "left" or self.direction == "right":
-            self.strength = 0.3
-        elif self.direction == "down":
-            self.strength = 0.2
         self.particle_timer = 0
 
-    def check_touching_player(self, player):
-        self.get_pixel_coords()
-        if (player.x < self.p_x + 19 and player.x > self.p_x - 19) and (player.y < self.p_y + 19 and player.y > self.p_y - 19):
-            return True
-    
-    def get_pixel_coords(self):
-        self.p_x = self.x * 20
-        self.p_y = self.y * 20
-
-    def push_player(self, player):
         if self.direction == "up":
-            player.velocity[1] -= self.strength
+            self.color = (247, 255, 247)
         elif self.direction == "down":
-            player.velocity[1] += self.strength
+            self.color = (255, 247, 247)
         elif self.direction == "left":
-            player.velocity[0] -= self.strength
-        elif self.direction == "right":
-            player.velocity[0] += self.strength
+            self.color = (247, 247, 255)
+        else:
+            self.color = (255, 255, 247)
     
     def particles(self, level, camera_pos):
         if self.particle_timer == 0:
@@ -800,6 +805,8 @@ class Paragraph:
             screen.blit(text_surf2, text_rect2)
         if len(text) > 2:
             screen.blit(text_surf3, text_rect3)
+
+
 
 
 class Particle:
@@ -927,8 +934,6 @@ class Particle:
 
 
 
-
-
 class Camera():
     def __init__(self, move_buttons, speed):
         self.real_pos = [0, 0]
@@ -956,6 +961,8 @@ class Camera():
             self.pos[0] += random.random()*self.screenshake_intensity-(self.screenshake_intensity/2)
             self.pos[1] += random.random()*self.screenshake_intensity-(self.screenshake_intensity/2)
             self.screenshake_intensity -= 1
+
+
 
 
 class Blackout:
