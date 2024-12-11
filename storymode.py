@@ -15,6 +15,8 @@ pygame.display.set_caption("Axion's Journey")
 
 def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
 
+    level_color = (192, 253, 255)
+
     pygame.mixer.music.load(song)
 
     pygame.mixer.music.play(-1)
@@ -147,8 +149,11 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
                 particle.kill_wind_particle(level)
 
         level.clear_dead_particles()
+
+
+
         # Draw rectangles
-        windowSurface.fill((255,255,255))
+        windowSurface.fill(level_color)
 
         for block in level.block_object_list:
             block.render(windowSurface, GAME.camera.pos)
@@ -322,17 +327,17 @@ def main():
         raw_mouse_pos = pygame.mouse.get_pos()
         mouse_pos = ((raw_mouse_pos[0]-300)/10, (raw_mouse_pos[1]-300)/10)
 
-        title_rect.center = (t_pos[0] + mouse_pos[0], t_pos[1] + mouse_pos[1])
-        btn_img_rect.center = (b_pos[0] + mouse_pos[0]*0.9, b_pos[1] + mouse_pos[1]*0.9)
-        button_rect.center = (b_pos[0] + mouse_pos[0]*0.9, b_pos[1] + mouse_pos[1]*0.9)
+        title_rect.center = (t_pos[0] + mouse_pos[0]*1.5, t_pos[1] + mouse_pos[1]*1.4)
+        btn_img_rect.center = (b_pos[0] + mouse_pos[0]*1.2, b_pos[1] + mouse_pos[1]*1.3)
+        button_rect.center = (b_pos[0] + mouse_pos[0]*1.2, b_pos[1] + mouse_pos[1]*1.3)
 
 
 
 
-        img_back_rect.center = (300 + mouse_pos[0]*0.5, 300 + mouse_pos[1]*0.5)
-        img_midback_rect.center = (300 + mouse_pos[0]*0.6, 300 + mouse_pos[1]*0.56)
-        img_midfront_rect.center = (300 + mouse_pos[0]*0.7, 300 + mouse_pos[1]*0.7)
-        img_front_rect.center = (300 + mouse_pos[0]*0.85, 300 + mouse_pos[1]*0.85)
+        img_back_rect.center = (300 + mouse_pos[0]*0.6, 300 + mouse_pos[1]*0.6)
+        img_midback_rect.center = (300 + mouse_pos[0]*0.68, 300 + mouse_pos[1]*0.68)
+        img_midfront_rect.center = (300 + mouse_pos[0]*0.9, 300 + mouse_pos[1]*0.9)
+        img_front_rect.center = (300 + mouse_pos[0]*1.2, 300 + mouse_pos[1]*1.2)
 
 
         alpha = time

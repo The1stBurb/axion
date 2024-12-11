@@ -34,6 +34,8 @@ def main():
     DEATH = pygame.USEREVENT + 2
     FINISH = pygame.USEREVENT + 3
 
+    SKY = (192, 253, 255)
+
 
     pygame.mixer.init()
 
@@ -157,7 +159,7 @@ def main():
                 block.pos_block(LEVELEDITOR.camera.pos)
 
             # Draw rectangles
-            windowSurface.fill((255,255,255))
+            windowSurface.fill(SKY)
 
             for block in levels[LEVELEDITOR.level_idx].block_object_list:
                 block.render(windowSurface, LEVELEDITOR.camera.pos)
@@ -175,7 +177,7 @@ def main():
             if LEVELEDITOR.brush == "B":
                 cursor_color = (0,0,0)
             elif LEVELEDITOR.brush == " ":
-                cursor_color = (255,255,255)
+                cursor_color = SKY
             elif LEVELEDITOR.brush == "P":
                 cursor_color = (80,80,255)
             elif LEVELEDITOR.brush == "C":
@@ -305,7 +307,7 @@ def main():
 
             levels[GAME.level_idx].clear_dead_particles()
             # Draw rectangles
-            windowSurface.fill((255,255,255))
+            windowSurface.fill(SKY)
 
             for block in levels[GAME.level_idx].block_object_list:
                 block.render(windowSurface, GAME.camera.pos)
