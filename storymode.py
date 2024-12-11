@@ -47,10 +47,10 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
                     pygame.quit()
                     sys.exit()
 
-                if event.key == K_r:
+                if event.key == K_r and player != None:
                     player.reset_to_checkpoint()
 
-                if event.key == K_e:
+                if event.key == K_e and player != None:
                     if level.is_writing:
                         for block in level.text_blocks:
                             if block.is_writing:
@@ -406,13 +406,15 @@ def main():
 
 
 
+
+
     run_level(levels[0], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Luna Ascension EX - flashygoodness.mp3")
 
     # CUTSCENE HERE!!! (intro and panic)
 
     run_level(levels[1], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Cheat Codes - Nitro Fun.mp3")
     run_level(levels[2], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Commando Steve - Bossfight.mp3")
-    #run_level(levels[3], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Oceanic Breeze - flashygoodness.mp3")
+    run_level(levels[3], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Oceanic Breeze - flashygoodness.mp3")
 
     # CUTSCENE HERE!!! (oh no, hes gonna get me)
 

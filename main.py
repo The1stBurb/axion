@@ -43,6 +43,8 @@ def main():
 
     while True:
         # FIRST
+        keys = pygame.key.get_pressed()
+
         if editing:
             for event in pygame.event.get():
                 if event.type == QUIT:
@@ -58,7 +60,7 @@ def main():
                         levels.append(LEVELMANAGER.add_level(len(levels)))
                         LEVELEDITOR.level_idx = len(levels)-1
                     elif event.key == K_r:
-                        if K_4 in pygame.key.get_pressed() and K_5 in pygame.key.get_pressed():
+                        if K_4 in keys and K_5 in keys:
                             levels[LEVELEDITOR.level_idx] = LEVELMANAGER.add_level(LEVELEDITOR.level_idx)
                     elif event.key == K_h:
                         LEVELEDITOR.level_idx -= 1
@@ -110,7 +112,7 @@ def main():
                 player = levels[LEVELEDITOR.level_idx].get_player_object()
 
             # Get keys pressed and mouse position
-            keys = pygame.key.get_pressed()
+            
             raw_mouse_pos = pygame.mouse.get_pos()
             
             # Get camera movements

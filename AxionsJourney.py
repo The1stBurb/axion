@@ -488,9 +488,9 @@ class PlayerBlock(Block):
         if self.wind_push["down"]:
             self.velocity[1] += 0.3
         if self.wind_push["left"]:
-            self.velocity[0] -= 0.45
+            self.velocity[0] -= 0.55
         if self.wind_push["right"]:
-            self.velocity[0] += 0.45
+            self.velocity[0] += 0.55
 
             
     def update_pos(self, level):
