@@ -122,8 +122,8 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
             elif isinstance(block, WindBlock):
                 block.particles(level, GAME.camera.pos)
 
-        for block in level.fog_blocks:
-            block.spread(level, 30)
+
+        level.spread_fog(27)
 
 
         level_width = level.level_dict["width"] * 20
@@ -213,7 +213,7 @@ def main():
 
 
 
-
+    '''
     # LOAD IN
     pygame.mixer.music.load("music/Adventure - Disasterpiece.mp3")
     pygame.mixer.music.play(-1)
@@ -417,16 +417,16 @@ def main():
     run_level(levels[3], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Oceanic Breeze - flashygoodness.mp3")
 
     # CUTSCENE HERE!!! (oh no, hes gonna get me)
-
-    #run_level(levels[4], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Annihilate (edited).mp3")
+    '''
+    run_level(levels[4], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Annihilate (edited).mp3")
 
     # CUTSCENE HERE!!! (the longest one, quaternius is saved!!!)
 
 
 
-
+    '''
     # CREDITS
-
+    
     credit_dict = {
         "heading1": "Created by Tyler Watts",
         "heading2": "Art",
@@ -519,7 +519,7 @@ def main():
 
         pygame.display.update()
         mainClock.tick(60)
-        
+    '''
 
 
 main()

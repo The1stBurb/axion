@@ -60,7 +60,7 @@ def main():
                         levels.append(LEVELMANAGER.add_level(len(levels)))
                         LEVELEDITOR.level_idx = len(levels)-1
                     elif event.key == K_r:
-                        if K_4 in keys and K_5 in keys:
+                        if keys[K_4] and keys[K_5]:
                             levels[LEVELEDITOR.level_idx] = LEVELMANAGER.add_level(LEVELEDITOR.level_idx)
                     elif event.key == K_h:
                         LEVELEDITOR.level_idx -= 1
@@ -106,7 +106,8 @@ def main():
                         GAME.level_idx = LEVELEDITOR.level_idx
                         editing = False
             
-
+            if pygame.mixer.music.get_busy():
+                pygame.mixer.music.stop()
 
             if player == None:
                 player = levels[LEVELEDITOR.level_idx].get_player_object()
@@ -210,7 +211,9 @@ def main():
 
         else: # Not in editing mode?
 
-
+            if GAME.level_idx == 4 and not pygame.mixer.music.get_busy():
+                pygame.mixer.music.load("music/Annihilate (edited).mp3")
+                pygame.mixer.music.play(1)
 
 
             for event in pygame.event.get():
@@ -278,13 +281,11 @@ def main():
                 elif isinstance(block, ExitBlock):
                     block.change_color()
                     block.particles(GAME.camera.pos, levels[GAME.level_idx])
-                elif isinstance(block, DangerBlock):
-                    block.particles(levels[GAME.level_idx], GAME.camera.pos)
                 elif isinstance(block, WindBlock):
                     block.particles(levels[GAME.level_idx], GAME.camera.pos)
 
-            for block in levels[GAME.level_idx].fog_blocks:
-                block.spread(levels[GAME.level_idx], 30)
+            for block in levels[GAME.level_idx].live_fog_blocks:
+                block.spread(levels[GAME.level_idx], 28)
 
 
             level_width = levels[GAME.level_idx].level_dict["width"] * 20
