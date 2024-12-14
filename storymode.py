@@ -210,10 +210,11 @@ def main():
     hit = pygame.mixer.Sound("sfx/hit.wav")
 
 
+    WHITE = (255, 255, 255)
+    SKY = (192, 253, 255)
 
 
-
-    '''
+    
     # LOAD IN
     pygame.mixer.music.load("music/Adventure - Disasterpiece.mp3")
     pygame.mixer.music.play(-1)
@@ -221,8 +222,7 @@ def main():
     pygame_logo = pygame.image.load("img/Pygame_logo.png")
     pygame_logo = pygame.transform.scale(pygame_logo, (500, 140))
 
-    WHITE = (255, 255, 255)
-    SKY = (192, 253, 255)
+    
 
     for x in range(80):                     # blank screen
         windowSurface.fill(SKY)
@@ -406,7 +406,7 @@ def main():
 
 
 
-
+    
 
     run_level(levels[0], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Luna Ascension EX - flashygoodness.mp3")
 
@@ -519,7 +519,7 @@ def main():
 
         pygame.display.update()
         mainClock.tick(60)
-    '''
+    
 
 
 main()
