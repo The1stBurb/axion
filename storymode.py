@@ -382,7 +382,7 @@ def main():
     SKY = (192, 253, 255)
 
 
-    
+    '''
     # LOAD IN
     pygame.mixer.music.load("music/Adventure - Disasterpiece.mp3")
     pygame.mixer.music.play(-1)
@@ -585,7 +585,7 @@ def main():
     run_level(levels[3], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Oceanic Breeze - flashygoodness.mp3")
 
     # CUTSCENE HERE!!! (oh no, hes gonna get me)
-    
+    '''
     boss_level(levels[4], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit)
 
     # CUTSCENE HERE!!! (the longest one, quaternius is saved!!!)
