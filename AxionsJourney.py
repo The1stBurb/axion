@@ -170,7 +170,7 @@ class Level:
         self.fog_idxes = []
         self.live_fog_blocks = []
         self.queued_fog = []
-        self.fog_cooldown = 28
+        self.fog_cooldown = 14
 
         self.text_blocks = []
         self.messages = messages
@@ -241,6 +241,7 @@ class Level:
     def spread_fog(self, cooldown):
         if self.fog_cooldown == 0:
             for block in self.live_fog_blocks:
+                block.live = False
                 block.spread(self)
             self.live_fog_blocks = []
             self.create_fog()
@@ -251,8 +252,9 @@ class Level:
     def add_fog(self, idx):
         width = self.level_dict["width"]
         block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
-        self.fog_blocks.append(FogBlock(idx%width, idx//width, block_hitbox, self.block_size, idx))
-        self.queued_fog.append(FogBlock(idx%width, idx//width, block_hitbox, self.block_size, idx))
+        block = FogBlock(idx%width, idx//width, block_hitbox, self.block_size, idx)
+        self.queued_fog.append(block)
+        self.fog_blocks.append(block)
         self.fog_idxes.append(idx)
     
     def create_fog(self):
@@ -298,6 +300,9 @@ class Level:
 
     def wind_particle(self, x, y, direction):
         self.particles.append(Particle(x, y, "wind-"+direction))
+
+    def fog_particle(self, x, y):
+        self.particles.append(Particle(x, y, "fog"))
 
 
 class LevelEditor:
@@ -577,7 +582,7 @@ class DangerBlock(Block):
     def particles(self, level, camera_pos):
         if self.particle_timer == 0:
             block_above = level.level_dict["blocklist"][self.idx-level.level_dict["width"]]
-            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620 and block_above != "X" and block_above != "B":
+            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620 and block_above != "X" and block_above != "B" and not self.idx in level.fog_idxes:
                 x = random.randint(self.x*20, self.x*20 + 17)
                 y = random.randint(self.y*20, self.y*20 + 10)
                 level.danger_particle(x, y)
@@ -608,16 +613,6 @@ class ExitBlock(Block):
 
         elif self.color[2] > 0 and self.color[0] == 255:
             self.color[2] -= 5
-
-    def particles(self, camera_pos, level):
-        if self.particle_timer == 0:
-            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620:
-                x = self.x*20+10
-                y = self.y*20+10
-                level.exit_particle(x, y, self.color)
-                self.particle_timer = 2
-        else:
-            self.particle_timer -= 1
     
 class CheckpointBlock(Block):
     def __init__(self, x, y, hitbox, blocksize, idx):
@@ -683,7 +678,7 @@ class AirJumpBlock(Block):
 
     def particles(self, camera_pos, level):
         if self.particle_timer == 0:
-            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620 and self.claimed_frames == 0:
+            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620 and self.claimed_frames == 0 and not self.idx in level.fog_idxes:
                 x = self.x*20+10
                 y = self.y*20+10
                 level.airjump_particle(x, y)
@@ -695,6 +690,7 @@ class FogBlock(Block):
     def __init__(self, x, y, hitbox, blocksize, idx):
         super().__init__(x, y, (50,0,22), hitbox, blocksize, idx)
         self.live = True
+        self.particle_timer = 1
 
     def spread(self, level):
         self.live = False
@@ -715,12 +711,17 @@ class FogBlock(Block):
         if level_list[idx_right] != "B" and not (idx_right in level.fog_idxes):
             level.add_fog(idx_right)
         
-    
-    def render(self, windowSurface, camera_pos):
-        if self.live:
-            self.color = (50, 0, 22)
+    def particles(self, level, camera_pos):
+        if self.particle_timer == 0:
+            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620:
+                x = self.x*20+10
+                y = self.y*20+10
+                level.fog_particle(x, y)
+                self.particle_timer = 2
         else:
-            self.color = (22, 0, 50)
+            self.particle_timer -= 1
+
+    def render(self, windowSurface, camera_pos):
         super().render(windowSurface, camera_pos)
 
 
@@ -767,7 +768,7 @@ class WindBlock(Block):
     
     def particles(self, level, camera_pos):
         if self.particle_timer == 0:
-            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620:
+            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620 and not self.idx in level.fog_idxes:
                 x = random.randint(self.x*20, self.x*20 + 17)
                 y = random.randint(self.y*20, self.y*20 + 10)
                 level.wind_particle(x, y, self.direction)
@@ -877,7 +878,7 @@ class Particle:
             self.velocity = [random.random()*2-1, random.random()*2-1]
             self.color = (255,175,0)
             self.hitbox = pygame.rect.Rect(0, 0, 3, 3)
-            self.lifetime = 40
+            self.lifetime = 20
 
         elif "wind" in self.type:
             self.speed = 0.1
@@ -900,6 +901,12 @@ class Particle:
             elif "left" in self.type:
                 self.velocity = [-1, 0]
                 self.consistant_y = y
+        
+        elif self.type == "fog":
+            self.velocity = [random.random()*3-1.5, random.random()*3-1.5]
+            self.color = (50, 0, 21)
+            self.hitbox = pygame.rect.Rect(0, 0, 3, 3)
+            self.lifetime = 40
 
     
     def update(self):
@@ -916,7 +923,7 @@ class Particle:
             self.x += self.velocity[0]
             self.velocity[0] *= 0.98
             self.lifetime -= 1
-        elif self.type == "exit" or self.type == "airjump":
+        elif self.type == "exit" or self.type == "airjump" or self.type == "fog":
             self.x += self.velocity[0]
             self.y += self.velocity[1]
             self.velocity[0] *= 0.95

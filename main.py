@@ -284,8 +284,7 @@ def main():
                 elif isinstance(block, WindBlock):
                     block.particles(levels[GAME.level_idx], GAME.camera.pos)
 
-            for block in levels[GAME.level_idx].live_fog_blocks:
-                block.spread(levels[GAME.level_idx], 28)
+            levels[GAME.level_idx].spread_fog()
 
 
             level_width = levels[GAME.level_idx].level_dict["width"] * 20
