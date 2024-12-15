@@ -391,6 +391,7 @@ class PlayerBlock(Block):
         self.get_touching_wind(level)
         self.squarify()
         self.check_touching_danger(level, death_event)
+        self.get_in_fog(level)
         self.check_exit(level, finish_event)
 
     def fall(self):
@@ -508,6 +509,10 @@ class PlayerBlock(Block):
         self.wind_push["left"] = self.get_tile_at(self.x, self.y, level) == "K" or self.get_tile_at(self.x, self.y+19.99, level) == "K" or self.get_tile_at(self.x+19.99, self.y, level) == "K" or self.get_tile_at(self.x+19.99, self.y+19.99, level) == "K"
         self.wind_push["right"] = self.get_tile_at(self.x, self.y, level) == ";" or self.get_tile_at(self.x, self.y+19.99, level) == ";" or self.get_tile_at(self.x+19.99, self.y, level) == ";" or self.get_tile_at(self.x+19.99, self.y+19.99, level) == ";"
 
+    def get_in_fog(self, level):
+        if self.get_tile_num_at(self.x, self.y, level) in level.fog_idxes and self.get_tile_num_at(self.x, self.y+19.99, level) in level.fog_idxes and self.get_tile_num_at(self.x+19.99, self.y, level) in level.fog_idxes and self.get_tile_num_at(self.x+19.99, self.y+19.99, level) in level.fog_idxes:
+            print("OW OW OW OW OW OW!!!")
+
     def pushed_by_wind(self):
         if self.wind_push["up"]:
             self.velocity[1] -= 0.5
@@ -525,7 +530,6 @@ class PlayerBlock(Block):
         self.x += self.velocity[0]
         self.detect_wall(level)
         
-
 
     def pos_block(self, camera_pos):
         self.hitbox.left = self.x - camera_pos[0]
@@ -567,6 +571,13 @@ class PlayerBlock(Block):
         tile_y = int(y/20)
         tile_idx = tile_x + tile_y*level.level_dict["width"]
         return level.level_dict["blocklist"][tile_idx]
+    
+    @staticmethod
+    def get_tile_num_at(x, y, level):
+        tile_x = int(x/20)
+        tile_y = int(y/20)
+        tile_idx = tile_x + tile_y*level.level_dict["width"]
+        return tile_idx
 
 
 
@@ -613,6 +624,16 @@ class ExitBlock(Block):
 
         elif self.color[2] > 0 and self.color[0] == 255:
             self.color[2] -= 5
+    
+    def particles(self, level, camera_pos):
+        if self.particle_timer == 0:
+            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620:
+                x = self.x*20+10
+                y = self.y*20+10
+                level.exit_particle(x, y, self.color)
+                self.particle_timer = 2
+        else:
+            self.particle_timer -= 1
     
 class CheckpointBlock(Block):
     def __init__(self, x, y, hitbox, blocksize, idx):

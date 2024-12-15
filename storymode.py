@@ -116,7 +116,7 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
                 block.particles(GAME.camera.pos, level)
             elif isinstance(block, ExitBlock):
                 block.change_color()
-                block.particles(GAME.camera.pos, level)
+                block.particles(level, GAME.camera.pos)
             elif isinstance(block, DangerBlock):
                 block.particles(level, GAME.camera.pos)
             elif isinstance(block, WindBlock):
@@ -179,6 +179,8 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
         # LAST
         pygame.display.update()
         mainClock.tick(60)
+
+
 
 
 def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit):
@@ -287,8 +289,15 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit):
             elif isinstance(block, WindBlock):
                 block.particles(level, GAME.camera.pos)
 
+        time_in_seconds = pygame.mixer.music.get_pos() / 1000
 
-        level.spread_fog(14)
+
+
+
+        if time_in_seconds > 7:
+            level.spread_fog(10)
+        else:
+            level.spread_fog(16)
         
         for block in level.live_fog_blocks:
             block.particles(level, GAME.camera.pos)
@@ -373,7 +382,7 @@ def main():
     SKY = (192, 253, 255)
 
 
-    '''
+    
     # LOAD IN
     pygame.mixer.music.load("music/Adventure - Disasterpiece.mp3")
     pygame.mixer.music.play(-1)
@@ -576,7 +585,7 @@ def main():
     run_level(levels[3], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Oceanic Breeze - flashygoodness.mp3")
 
     # CUTSCENE HERE!!! (oh no, hes gonna get me)
-    '''
+    
     boss_level(levels[4], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit)
 
     # CUTSCENE HERE!!! (the longest one, quaternius is saved!!!)
