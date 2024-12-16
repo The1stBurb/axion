@@ -183,7 +183,7 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
 
 
 
-def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit):
+def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
 
     level_color = (255, 140, 150)
 
@@ -253,6 +253,10 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit):
                 fadeout_frames = 300
                 pygame.mixer.music.fadeout(6000)
 
+            elif event.type == FOGGED:
+                player = None
+                fadeout_frames = 300
+                pygame.mixer.music.fadeout(6000)
         
         if fadeout_frames > -1:
             fadeout_frames -= 1
@@ -269,7 +273,7 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit):
         if player != None:
             if player.dead == 0:
                 if not level.is_writing:
-                    player.main_loop(keys, level, DEATH, FINISH)
+                    player.main_loop(keys, level, DEATH, FINISH, FOGGED)
             else:
                 player.dead -= 1
                 if player.dead == 0:
@@ -284,6 +288,9 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit):
                 if player != None:
                     block.check_touching_player(player)
                 block.particles(GAME.camera.pos, level)
+            elif isinstance(block, ExitBlock):
+                block.change_color()
+                block.particles(level, GAME.camera.pos)
             elif isinstance(block, DangerBlock):
                 block.particles(level, GAME.camera.pos)
             elif isinstance(block, WindBlock):
@@ -295,9 +302,9 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit):
 
 
         if time_in_seconds > 7:
-            level.spread_fog(10)
+            level.spread_fog(9)
         else:
-            level.spread_fog(16)
+            level.spread_fog(28)
         
         for block in level.live_fog_blocks:
             block.particles(level, GAME.camera.pos)
@@ -372,6 +379,7 @@ def main():
     CHECKPOINT = pygame.USEREVENT + 1
     DEATH = pygame.USEREVENT + 2
     FINISH = pygame.USEREVENT + 3
+    FOGGED = pygame.USEREVENT + 4
 
 
     pygame.mixer.init()
@@ -586,7 +594,7 @@ def main():
 
     # CUTSCENE HERE!!! (oh no, hes gonna get me)
     '''
-    boss_level(levels[4], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit)
+    boss_level(levels[4], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit)
 
     # CUTSCENE HERE!!! (the longest one, quaternius is saved!!!)
 

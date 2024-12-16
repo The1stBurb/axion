@@ -382,7 +382,7 @@ class PlayerBlock(Block):
         self.width = 20
         self.height = 20
 
-    def main_loop(self, buttons_pressed, level, death_event, finish_event):
+    def main_loop(self, buttons_pressed, level, death_event, finish_event, fog_event):
         self.fall()
         self.walk(buttons_pressed, level)
         self.jump(buttons_pressed)
@@ -391,7 +391,7 @@ class PlayerBlock(Block):
         self.get_touching_wind(level)
         self.squarify()
         self.check_touching_danger(level, death_event)
-        self.get_in_fog(level)
+        self.get_in_fog(level, fog_event)
         self.check_exit(level, finish_event)
 
     def fall(self):
@@ -509,9 +509,9 @@ class PlayerBlock(Block):
         self.wind_push["left"] = self.get_tile_at(self.x, self.y, level) == "K" or self.get_tile_at(self.x, self.y+19.99, level) == "K" or self.get_tile_at(self.x+19.99, self.y, level) == "K" or self.get_tile_at(self.x+19.99, self.y+19.99, level) == "K"
         self.wind_push["right"] = self.get_tile_at(self.x, self.y, level) == ";" or self.get_tile_at(self.x, self.y+19.99, level) == ";" or self.get_tile_at(self.x+19.99, self.y, level) == ";" or self.get_tile_at(self.x+19.99, self.y+19.99, level) == ";"
 
-    def get_in_fog(self, level):
+    def get_in_fog(self, level, fog_event):
         if self.get_tile_num_at(self.x, self.y, level) in level.fog_idxes and self.get_tile_num_at(self.x, self.y+19.99, level) in level.fog_idxes and self.get_tile_num_at(self.x+19.99, self.y, level) in level.fog_idxes and self.get_tile_num_at(self.x+19.99, self.y+19.99, level) in level.fog_idxes:
-            print("OW OW OW OW OW OW!!!")
+            pygame.event.post(pygame.event.Event(fog_event))
 
     def pushed_by_wind(self):
         if self.wind_push["up"]:
