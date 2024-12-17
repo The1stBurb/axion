@@ -304,6 +304,19 @@ class Level:
     def fog_particle(self, x, y):
         self.particles.append(Particle(x, y, "fog"))
 
+    def reset(self):
+        self.block_object_list = []
+        self.player_objects = []
+        self.particles = []
+
+        self.fog_blocks = []
+        self.fog_idxes = []
+        self.live_fog_blocks = []
+        self.queued_fog = []
+        self.fog_cooldown = 14
+
+        self.create_block_objects()
+
 
 class LevelEditor:
     def __init__(self):

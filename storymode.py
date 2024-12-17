@@ -185,181 +185,194 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
 
 def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
 
-    level_color = (255, 140, 150)
+    done = False
 
-    pygame.mixer.music.load("music/Annihilate (edited).mp3")
+    while not done:
+        level.reset()
+        level_color = (255, 140, 150)
 
-    pygame.mixer.music.play(-1)
+        pygame.mixer.music.load("music/Annihilate (edited).mp3")
 
-    player = level.get_player_object()
-    fadeout_frames = -1
-    fadein_frames = 30
+        pygame.mixer.music.play(-1)
 
-    for x in range(30):
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
+        player = level.get_player_object()
+        fadeout_frames = -1
+        fadein_frames = 30
 
-        BLACKOUT.draw(windowSurface)
+        
 
-        pygame.display.update()
-        mainClock.tick(60)
-
-    while True:
-        # FIRST
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == KEYDOWN:
-                if event.key == K_ESCAPE:
+        for x in range(30):
+            for event in pygame.event.get():
+                if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
 
-                if event.key == K_r and player != None:
-                    player.reset_to_checkpoint()
+            BLACKOUT.draw(windowSurface)
 
-                if event.key == K_e and player != None:
-                    if level.is_writing:
-                        for block in level.text_blocks:
-                            if block.is_writing:
-                                if block.drawing_text < len(block.message.message) * block.message.frames_per_letter:
-                                    block.drawing_text = 9999
-                                else:
-                                    level.is_writing = False
-                                    block.is_writing = False
-                                break  
-                    else:
-                        for block in level.text_blocks:
-                            if block.check_touching_player(player) and not block.is_writing:
-                                block.is_writing = True
-                                level.is_writing = True
-                                break
-                            
+            pygame.display.update()
+            mainClock.tick(60)
 
-            elif event.type == CHECKPOINT:
-                for block in level.block_object_list:
-                    if isinstance(block, CheckpointBlock):
-                        block.declaim()
+        while True:
+            # FIRST
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == KEYDOWN:
+                    if event.key == K_ESCAPE:
+                        pygame.quit()
+                        sys.exit()
 
-            elif event.type == DEATH:
-                level.death_particles(player)
-                GAME.camera.screenshake_intensity = 18
-                hit.play()
+                    if event.key == K_r and player != None:
+                        player.reset_to_checkpoint()
 
-            elif event.type == FINISH:
-                player = None
-                fadeout_frames = 300
-                pygame.mixer.music.fadeout(6000)
+                    if event.key == K_e and player != None:
+                        if level.is_writing:
+                            for block in level.text_blocks:
+                                if block.is_writing:
+                                    if block.drawing_text < len(block.message.message) * block.message.frames_per_letter:
+                                        block.drawing_text = 9999
+                                    else:
+                                        level.is_writing = False
+                                        block.is_writing = False
+                                    break  
+                        else:
+                            for block in level.text_blocks:
+                                if block.check_touching_player(player) and not block.is_writing:
+                                    block.is_writing = True
+                                    level.is_writing = True
+                                    break
+                                
 
-            elif event.type == FOGGED:
-                player = None
-                fadeout_frames = 300
-                pygame.mixer.music.fadeout(6000)
+                elif event.type == CHECKPOINT:
+                    for block in level.block_object_list:
+                        if isinstance(block, CheckpointBlock):
+                            block.declaim()
+
+                elif event.type == DEATH:
+                    level.death_particles(player)
+                    GAME.camera.screenshake_intensity = 18
+                    hit.play()
+
+                elif event.type == FINISH:
+                    player = None
+                    fadeout_frames = 300
+                    pygame.mixer.music.fadeout(6000)
+                    done = True
+
+                elif event.type == FOGGED and not done:
+                    player = None
+                    fadeout_frames = 300
+                    pygame.mixer.music.fadeout(6000)
+            
+            if fadeout_frames > -1:
+                fadeout_frames -= 1
+                BLACKOUT.fade_out(fadeout_frames, 300)
+                if fadeout_frames == 0:
+                    break
+            elif fadein_frames > 0:
+                fadein_frames -= 1
+                BLACKOUT.fade_in(fadein_frames, 30)
         
-        if fadeout_frames > -1:
-            fadeout_frames -= 1
-            BLACKOUT.fade_out(fadeout_frames, 300)
-            if fadeout_frames == 0:
-                break
-        elif fadein_frames > 0:
-            fadein_frames -= 1
-            BLACKOUT.fade_in(fadein_frames, 30)
-    
-        
-        keys = pygame.key.get_pressed()
+            time_in_seconds = pygame.mixer.music.get_pos() / 1000
 
-        if player != None:
-            if player.dead == 0:
-                if not level.is_writing:
-                    player.main_loop(keys, level, DEATH, FINISH, FOGGED)
+            if time_in_seconds > 180.5:
+                level.spread_fog(100)
+            elif time_in_seconds > 173.5:
+                level.spread_fog(48)
+            elif time_in_seconds > 169:
+                level.spread_fog(28)
+                done = True
+            elif time_in_seconds > 7:
+                level.spread_fog(9)
             else:
-                player.dead -= 1
+                level.spread_fog(28)
+            
+            if not done:
+                keys = pygame.key.get_pressed()
+
+            if player != None:
                 if player.dead == 0:
-                    player.reset_to_checkpoint()
+                    if not level.is_writing:
+                        player.main_loop(keys, level, DEATH, FINISH, FOGGED)
+                else:
+                    player.dead -= 1
+                    if player.dead == 0:
+                        player.reset_to_checkpoint()
 
 
-        for block in level.block_object_list:
-            if isinstance(block, CheckpointBlock):
-                if player != None:
-                    block.check_touching_player(player, CHECKPOINT)
-            elif isinstance(block, AirJumpBlock):
-                if player != None:
-                    block.check_touching_player(player)
-                block.particles(GAME.camera.pos, level)
-            elif isinstance(block, ExitBlock):
-                block.change_color()
+            for block in level.block_object_list:
+                if isinstance(block, CheckpointBlock):
+                    if player != None:
+                        block.check_touching_player(player, CHECKPOINT)
+                elif isinstance(block, AirJumpBlock):
+                    if player != None:
+                        block.check_touching_player(player)
+                    block.particles(GAME.camera.pos, level)
+                elif isinstance(block, ExitBlock):
+                    block.change_color()
+                    block.particles(level, GAME.camera.pos)
+                elif isinstance(block, DangerBlock):
+                    block.particles(level, GAME.camera.pos)
+                elif isinstance(block, WindBlock):
+                    block.particles(level, GAME.camera.pos)
+
+            
+            
+            for block in level.live_fog_blocks:
                 block.particles(level, GAME.camera.pos)
-            elif isinstance(block, DangerBlock):
-                block.particles(level, GAME.camera.pos)
-            elif isinstance(block, WindBlock):
-                block.particles(level, GAME.camera.pos)
-
-        time_in_seconds = pygame.mixer.music.get_pos() / 1000
 
 
+            level_width = level.level_dict["width"] * 20
+            level_height = level.level_dict["height"] * 20
+            if player != None:
+                GAME.move_camera_to_player(player.x+20, player.y+20, [level_width, level_height])
+            GAME.camera.screenshake()
+
+            if player != None:
+                player.pos_block(GAME.camera.pos)
+
+            for block in level.block_object_list:
+                block.pos_block(GAME.camera.pos)
+            for block in level.fog_blocks:
+                block.pos_block(GAME.camera.pos)
+            for block in level.live_fog_blocks:
+                block.pos_block(GAME.camera.pos)
+
+            for particle in level.particles:
+                particle.update()
+                particle.pos_particle(GAME.camera.pos)
+                if "wind" in particle.type:
+                    particle.kill_wind_particle(level)
+
+            level.clear_dead_particles()
 
 
-        if time_in_seconds > 7:
-            level.spread_fog(9)
-        else:
-            level.spread_fog(28)
+
+            # Draw rectangles
+            windowSurface.fill(level_color)
+
+            for block in level.block_object_list:
+                block.render(windowSurface, GAME.camera.pos)
+
+            if player != None:
+                if player.dead == 0:
+                    player.render(windowSurface, GAME.camera.pos)
+
+            for particle in level.particles:
+                particle.render(windowSurface)
+
+            for block in level.fog_blocks:
+                block.render(windowSurface, GAME.camera.pos)
+            for block in level.fog_blocks:
+                block.render(windowSurface, GAME.camera.pos)
         
-        for block in level.live_fog_blocks:
-            block.particles(level, GAME.camera.pos)
 
+            BLACKOUT.draw(windowSurface)
 
-        level_width = level.level_dict["width"] * 20
-        level_height = level.level_dict["height"] * 20
-        if player != None:
-            GAME.move_camera_to_player(player.x+20, player.y+20, [level_width, level_height])
-        GAME.camera.screenshake()
-
-        if player != None:
-            player.pos_block(GAME.camera.pos)
-
-        for block in level.block_object_list:
-            block.pos_block(GAME.camera.pos)
-        for block in level.fog_blocks:
-            block.pos_block(GAME.camera.pos)
-        for block in level.live_fog_blocks:
-            block.pos_block(GAME.camera.pos)
-
-        for particle in level.particles:
-            particle.update()
-            particle.pos_particle(GAME.camera.pos)
-            if "wind" in particle.type:
-                particle.kill_wind_particle(level)
-
-        level.clear_dead_particles()
-
-
-
-        # Draw rectangles
-        windowSurface.fill(level_color)
-
-        for block in level.block_object_list:
-            block.render(windowSurface, GAME.camera.pos)
-
-        if player != None:
-            if player.dead == 0:
-                player.render(windowSurface, GAME.camera.pos)
-
-        for particle in level.particles:
-            particle.render(windowSurface)
-
-        for block in level.fog_blocks:
-            block.render(windowSurface, GAME.camera.pos)
-        for block in level.fog_blocks:
-            block.render(windowSurface, GAME.camera.pos)
-       
-
-        BLACKOUT.draw(windowSurface)
-
-        # LAST
-        pygame.display.update()
-        mainClock.tick(60)
+            # LAST
+            pygame.display.update()
+            mainClock.tick(60)
 
     
 
