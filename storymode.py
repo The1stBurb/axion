@@ -278,7 +278,7 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
 
             if time_in_seconds > 180.5:
                 level.spread_fog(100)
-            elif time_in_seconds > 173.5:
+            elif time_in_seconds > 172.5:
                 level.spread_fog(48)
             elif time_in_seconds > 169:
                 level.spread_fog(28)
