@@ -99,7 +99,7 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
         if player != None and fadein_frames  < 90:
             if player.dead == 0:
                 if not level.is_writing:
-                    player.main_loop(keys, level, DEATH, FINISH)
+                    player.main_loop(keys, level, DEATH, FINISH, None)
             else:
                 player.dead -= 1
                 if player.dead == 0:
@@ -193,7 +193,7 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
 
         pygame.mixer.music.load("music/Annihilate (edited).mp3")
 
-        pygame.mixer.music.play(-1)
+        pygame.mixer.music.play()
 
         player = level.get_player_object()
         fadeout_frames = -1
@@ -260,10 +260,11 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
                     pygame.mixer.music.fadeout(6000)
                     done = True
 
-                elif event.type == FOGGED and not done:
+                elif event.type == FOGGED:
                     player = None
                     fadeout_frames = 300
                     pygame.mixer.music.fadeout(6000)
+
             
             if fadeout_frames > -1:
                 fadeout_frames -= 1
@@ -279,7 +280,7 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
             if time_in_seconds > 180.5:
                 level.spread_fog(100)
             elif time_in_seconds > 172.5:
-                level.spread_fog(48)
+                level.spread_fog(39)
             elif time_in_seconds > 169:
                 level.spread_fog(28)
                 done = True
@@ -287,6 +288,10 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
                 level.spread_fog(9)
             else:
                 level.spread_fog(28)
+
+            if time_in_seconds > 185.5:
+                player = None
+                fadeout_frames = 300
             
             if not done:
                 keys = pygame.key.get_pressed()
@@ -403,7 +408,7 @@ def main():
     SKY = (192, 253, 255)
 
 
-    '''
+    
     # LOAD IN
     pygame.mixer.music.load("music/Adventure - Disasterpiece.mp3")
     pygame.mixer.music.play(-1)
@@ -606,7 +611,7 @@ def main():
     run_level(levels[3], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Oceanic Breeze - flashygoodness.mp3")
 
     # CUTSCENE HERE!!! (oh no, hes gonna get me)
-    '''
+    
     boss_level(levels[4], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit)
 
     # CUTSCENE HERE!!! (the longest one, quaternius is saved!!!)
@@ -618,9 +623,6 @@ def main():
     
     credit_dict = {
         "heading1": "Created by Tyler Watts",
-        "heading2": "Art",
-        "Storyboards": "Tyler Watts",
-        "Animations": "Tyler Watts",
 
         "heading3": "Music",
         "Adventure": "Disasterpiece",
@@ -639,8 +641,15 @@ def main():
         "heading4": "Inspiration",
         "Celeste": "Maddy Makes Games",
         "Just Shapes & Beats": "Berzerk Studio",
-        "Rivals of Aether": "Aether Studios"
+        "Rivals of Aether": "Aether Studios",
 
+        "heading5": "Special Thanks",
+        "Elissa Maffei": "Story & Art Review",
+        "Brenna Stanley": "Story Review",
+        "Rachel Petersen": "Story Review",
+        "Lincolin Haggard": "Playtesting",
+
+        "headingfinal": "THANK YOU FOR PLAYING!"
 
     }
 
