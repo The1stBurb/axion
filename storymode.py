@@ -281,7 +281,7 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
                 level.spread_fog(100)
             elif time_in_seconds > 172.5:
                 level.spread_fog(39)
-            elif time_in_seconds > 169:
+            elif time_in_seconds > 170:
                 level.spread_fog(28)
                 done = True
             elif time_in_seconds > 7:
@@ -648,6 +648,8 @@ def main():
         "Brenna Stanley": "Story Review",
         "Rachel Petersen": "Story Review",
         "Lincolin Haggard": "Playtesting",
+        "Dax Petersen": "Playtesting",
+        "Taggart Cook": "Playtesting",
 
         "headingfinal": "THANK YOU FOR PLAYING!"
 

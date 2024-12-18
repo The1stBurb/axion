@@ -54,8 +54,6 @@ def main():
                     if event.key == K_ESCAPE:
                         pygame.quit()
                         sys.exit()
-                    elif event.key == K_t:
-                        LEVELMANAGER.save_all(levels)
                     elif event.key == K_g:
                         levels.append(LEVELMANAGER.add_level(len(levels)))
                         LEVELEDITOR.level_idx = len(levels)-1
