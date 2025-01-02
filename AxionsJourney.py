@@ -232,9 +232,13 @@ class Level:
     def get_str_of_blocks(self):
         return "".join(self.level_dict["blocklist"])
     
-    def get_player_object(self):
+    def get_player_object(self,checkpoint=(None,None)):
         if self.player_objects != []:
-            return self.player_objects[0]
+            bob=self.player_objects[0]
+            if checkpoint!=(None,None):
+                bob.x=bob.checkpoint_x=checkpoint[0]
+                bob.y=bob.checkpoint_y=checkpoint[1]
+            return bob
         else:
             return None
     

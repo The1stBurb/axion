@@ -3,6 +3,7 @@ from pygame.locals import *
 import os, sys
 from AxionsJourney import *
 import random
+import save_code.comPile as pile
 
 mainClock = pygame.time.Clock()
 pygame.init()
@@ -11,23 +12,24 @@ WINDOWWIDTH = 600
 WINDOWHEIGHT = 600
 windowSurface = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), flags=pygame.SCALED, depth=32, vsync=1)
 pygame.display.set_caption("Axion's Journey")
-
+currentCheck=(None,None)
 
 def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
-
+    global currentCheck
     level_color = (192, 253, 255)
 
     pygame.mixer.music.load(song)
 
     pygame.mixer.music.play(-1)
-
-    player = level.get_player_object()
+    player = level.get_player_object(currentCheck)
+    currentCheck=(None,None)
     fadeout_frames = -1
     fadein_frames = 180
 
     for x in range(30):
         for event in pygame.event.get():
             if event.type == QUIT:
+                on_quit(player.checkpoint_x,player.checkpoint_y)
                 pygame.quit()
                 sys.exit()
 
@@ -40,10 +42,12 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
         # FIRST
         for event in pygame.event.get():
             if event.type == QUIT:
+                on_quit(player.checkpoint_x,player.checkpoint_y)
                 pygame.quit()
                 sys.exit()
             elif event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
+                    on_quit(player.checkpoint_x,player.checkpoint_y)
                     pygame.quit()
                     sys.exit()
 
@@ -184,7 +188,7 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
 
 
 def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
-
+    global currentCheck
     done = False
 
     while not done:
@@ -195,7 +199,8 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
 
         pygame.mixer.music.play()
 
-        player = level.get_player_object()
+        player = level.get_player_object(currentCheck)
+        currentCheck=(None,None)
         fadeout_frames = -1
         fadein_frames = 30
 
@@ -204,6 +209,7 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
         for x in range(30):
             for event in pygame.event.get():
                 if event.type == QUIT:
+                    on_quit(player.checkpoint_x,player.checkpoint_y)
                     pygame.quit()
                     sys.exit()
 
@@ -216,10 +222,12 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
             # FIRST
             for event in pygame.event.get():
                 if event.type == QUIT:
+                    on_quit(player.checkpoint_x,player.checkpoint_y)
                     pygame.quit()
                     sys.exit()
                 elif event.type == KEYDOWN:
                     if event.key == K_ESCAPE:
+                        on_quit(player.checkpoint_x,player.checkpoint_y)
                         pygame.quit()
                         sys.exit()
 
@@ -380,14 +388,21 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
             mainClock.tick(60)
 
     
-
-
+levelOn=0
+levelComp=[]
+def on_quit(checkX,checkY):
+    saveCode=(levelOn,(checkX,checkY),levelComp)
+    pile.runPiler(saveCode)
+    print("\n\n",saveCode)
+def on_start():
+    global levelOn,currentCheck
+    saveCode=pile.runPiler()
+    levelOn,currentCheck,levelComp=eval(saveCode)
 def main():
-
+    global levelOn
     LEVELMANAGER = LevelManager()
     GAME = Game()
     BLACKOUT = Blackout()
-
     levels = LEVELMANAGER.load_all()
     if levels == []:
         levels.append(LEVELMANAGER.create_empty_level(30,30))
@@ -399,6 +414,7 @@ def main():
     FINISH = pygame.USEREVENT + 3
     FOGGED = pygame.USEREVENT + 4
 
+    musicLevel=["Luna Ascension EX - flashygoodness.mp3","Cheat Codes - Nitro Fun.mp3","Commando Steve - Bossfight.mp3","Oceanic Breeze - flashygoodness.mp3"]
 
     pygame.mixer.init()
     hit = pygame.mixer.Sound("sfx/hit.wav")
@@ -416,38 +432,38 @@ def main():
     pygame_logo = pygame.image.load("img/Pygame_logo.png")
     pygame_logo = pygame.transform.scale(pygame_logo, (500, 140))
 
-    
+    skip=False
+    if skip:
+        for x in range(80):                     # blank screen
+            windowSurface.fill(SKY)
+            pygame.display.update()
+            mainClock.tick(60)
+        
+        for x in range(20):                     # fade in pygame logo
+            windowSurface.fill(SKY)
+            pygame_logo.set_alpha(x/20*255)
+            windowSurface.blit(pygame_logo, (50, 230))
+            pygame.display.update()
+            mainClock.tick(60)
+        
+        for x in range(60):                     # show pygame logo 
+            windowSurface.fill(SKY)
+            windowSurface.blit(pygame_logo, (50, 230))
+            pygame.display.update()
+            mainClock.tick(60)
+        
+        for x in range(30, 0, -1):              # fade out pygame logo
+            windowSurface.fill(SKY)
+            pygame_logo.set_alpha(x/30*255)
+            windowSurface.blit(pygame_logo, (50, 230))
+            pygame.display.update()
+            mainClock.tick(60)
+        
 
-    for x in range(80):                     # blank screen
-        windowSurface.fill(SKY)
-        pygame.display.update()
-        mainClock.tick(60)
-    
-    for x in range(20):                     # fade in pygame logo
-        windowSurface.fill(SKY)
-        pygame_logo.set_alpha(x/20*255)
-        windowSurface.blit(pygame_logo, (50, 230))
-        pygame.display.update()
-        mainClock.tick(60)
-    
-    for x in range(60):                     # show pygame logo 
-        windowSurface.fill(SKY)
-        windowSurface.blit(pygame_logo, (50, 230))
-        pygame.display.update()
-        mainClock.tick(60)
-    
-    for x in range(30, 0, -1):              # fade out pygame logo
-        windowSurface.fill(SKY)
-        pygame_logo.set_alpha(x/30*255)
-        windowSurface.blit(pygame_logo, (50, 230))
-        pygame.display.update()
-        mainClock.tick(60)
-    
-
-    for x in range(70):                     # blank screen
-        windowSurface.fill(SKY)
-        pygame.display.update()
-        mainClock.tick(60)
+        for x in range(70):                     # blank screen
+            windowSurface.fill(SKY)
+            pygame.display.update()
+            mainClock.tick(60)
 
     # BUTTONS AND LOGO AND TITLE PARALAX
 
@@ -487,14 +503,14 @@ def main():
     b_pos = [300, 850]
     
     hover = False
-    clicked = False
-
+    clicked = not skip
 
     time = 0
     while not clicked:
 
         for event in pygame.event.get():
             if event.type == QUIT:
+                on_quit(None,None)
                 pygame.quit()
                 sys.exit()
             
@@ -569,52 +585,65 @@ def main():
         
 
     pygame.mixer.music.fadeout(5000)
+    if skip:
+        for x in range(300):
 
-    for x in range(300):
+            BLACKOUT.fade_out(300-x, 300)
 
-        BLACKOUT.fade_out(300-x, 300)
+            windowSurface.fill(SKY)
 
-        windowSurface.fill(SKY)
-
-        windowSurface.blit(img_back, img_back_rect)
-        windowSurface.blit(img_midback, img_midback_rect)
-        windowSurface.blit(img_midfront, img_midfront_rect)
-        windowSurface.blit(img_front, img_front_rect)
+            windowSurface.blit(img_back, img_back_rect)
+            windowSurface.blit(img_midback, img_midback_rect)
+            windowSurface.blit(img_midfront, img_midfront_rect)
+            windowSurface.blit(img_front, img_front_rect)
 
 
-        windowSurface.blit(title_txt, title_rect)
-        windowSurface.blit(button_img, btn_img_rect)
-        windowSurface.blit(button_txt, button_rect)
-        BLACKOUT.draw(windowSurface)
+            windowSurface.blit(title_txt, title_rect)
+            windowSurface.blit(button_img, btn_img_rect)
+            windowSurface.blit(button_txt, button_rect)
+            BLACKOUT.draw(windowSurface)
 
-        pygame.display.update()
-        mainClock.tick(60)
+            pygame.display.update()
+            mainClock.tick(60)
+        
+
+        for x in range(60):
+            BLACKOUT.draw(windowSurface)
+
+            pygame.display.update()
+            mainClock.tick(60)
+
+
+
+
     
-
-    for x in range(60):
-        BLACKOUT.draw(windowSurface)
-
-        pygame.display.update()
-        mainClock.tick(60)
-
-
-
-
-    
-
-    run_level(levels[0], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Luna Ascension EX - flashygoodness.mp3")
-
-    # CUTSCENE HERE!!! (intro and panic)
-
-    run_level(levels[1], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Cheat Codes - Nitro Fun.mp3")
-    run_level(levels[2], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Commando Steve - Bossfight.mp3")
-    run_level(levels[3], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Oceanic Breeze - flashygoodness.mp3")
-
-    # CUTSCENE HERE!!! (oh no, hes gonna get me)
-    
-    boss_level(levels[4], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit)
-
-    # CUTSCENE HERE!!! (the longest one, quaternius is saved!!!)
+    for lvl in range(levelOn,len(levels)):
+        run_level(levels[lvl],GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, f"music/{musicLevel[lvl]}")
+        levelOn+=1
+        if not lvl in levelComp:
+            levelComp.append(lvl)
+    if levelOn==0:
+        run_level(levels[0], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Luna Ascension EX - flashygoodness.mp3")
+        # CUTSCENE HERE!!! (intro and panic)
+        levelOn=1
+        levelComp.append(0)
+    if levelOn==1:
+        run_level(levels[1], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Cheat Codes - Nitro Fun.mp3")
+        levelOn=2
+        levelComp.append(1)
+    if levelOn==2:
+        run_level(levels[2], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Commando Steve - Bossfight.mp3")
+        levelOn=3
+        levelComp.append(2)
+    if levelOn==3:
+        run_level(levels[3], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Oceanic Breeze - flashygoodness.mp3")
+        levelOn=10
+        levelComp.append(3)
+        # CUTSCENE HERE!!! (oh no, hes gonna get me)
+    if levelOn==10:
+        boss_level(levels[4], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit)
+        levelComp.append(4)
+        # CUTSCENE HERE!!! (the longest one, quaternius is saved!!!)
 
 
 
@@ -650,9 +679,17 @@ def main():
         "Lincolin Haggard": "Playtesting",
         "Dax Petersen": "Playtesting",
         "Taggart Cook": "Playtesting",
+        "Etcetera_":"Playtesting",
+        "  ":"Building",
+        "   ":"Editing",
 
-        "headingfinal": "THANK YOU FOR PLAYING!"
+        "headingfinal": "THANK YOU FOR PLAYING!",
 
+
+        #"headingsongs":"Songs and the levels they were in!",
+        #"Level 1":"flashygoodness",
+        #"Level 2":"Nitro Fun",
+        #"Level 3":"Boss Fight",
     }
 
     heading_font = pygame.font.Font("fonts/PixelSplitter-Bold.ttf", 30)
@@ -691,21 +728,24 @@ def main():
     pygame.mixer.music.play()
 
     counter = 0
-
+    scroll=0
     while credit_rects[-1].bottom > 0:
-
+        scroll=scroll*.92
         for event in pygame.event.get():
             if event.type == QUIT:
+                on_quit(player.checkpoint_x,player.checkpoint_y)
                 pygame.quit()
                 sys.exit()
+            if event.type == pygame.MOUSEWHEEL:
+                scroll+=event.y
 
 
         counter += 1
         if counter == 3:
             counter = 0
-            title_rect.top -= 1
+            title_rect.top -= (1+scroll/2)
             for rect in credit_rects:
-                rect.top -= 1
+                rect.top -= (1+scroll/2)
 
         
 
@@ -721,5 +761,5 @@ def main():
         mainClock.tick(60)
     
 
-
+on_start()
 main()
