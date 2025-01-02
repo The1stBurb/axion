@@ -87,6 +87,8 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
                 fadeout_frames = 300
                 pygame.mixer.music.fadeout(6000)
 
+            elif event.type==MOUSEBUTTONDOWN and pygame.mouse.get_pos()[0]<20 and pygame.mouse.get_pos()[1]<20:
+                level.reset()
         
         if fadeout_frames > -1:
             fadeout_frames -= 1
@@ -222,12 +224,18 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
             # FIRST
             for event in pygame.event.get():
                 if event.type == QUIT:
-                    on_quit(player.checkpoint_x,player.checkpoint_y)
+                    if player!=None:
+                        on_quit(player.checkpoint_x,player.checkpoint_y)
+                    else:
+                        on_quit(None,None)
                     pygame.quit()
                     sys.exit()
                 elif event.type == KEYDOWN:
                     if event.key == K_ESCAPE:
-                        on_quit(player.checkpoint_x,player.checkpoint_y)
+                        if player!=None:
+                            on_quit(player.checkpoint_x,player.checkpoint_y)
+                        else:
+                            on_quit(None,None)
                         pygame.quit()
                         sys.exit()
 
@@ -269,7 +277,7 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
                     done = True
 
                 elif event.type == FOGGED:
-                    player = None
+                    player=None
                     fadeout_frames = 300
                     pygame.mixer.music.fadeout(6000)
 
@@ -278,6 +286,7 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
                 fadeout_frames -= 1
                 BLACKOUT.fade_out(fadeout_frames, 300)
                 if fadeout_frames == 0:
+                    player = None
                     break
             elif fadein_frames > 0:
                 fadein_frames -= 1
@@ -298,7 +307,7 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
                 level.spread_fog(28)
 
             if time_in_seconds > 185.5:
-                player = None
+                # player = None
                 fadeout_frames = 300
             
             if not done:
@@ -394,6 +403,7 @@ def on_quit(checkX,checkY):
     saveCode=(levelOn,(checkX,checkY),levelComp)
     pile.runPiler(saveCode)
     print("\n\n",saveCode)
+# on_quit(None,None)
 def on_start():
     global levelOn,currentCheck
     saveCode=pile.runPiler()
@@ -414,7 +424,7 @@ def main():
     FINISH = pygame.USEREVENT + 3
     FOGGED = pygame.USEREVENT + 4
 
-    musicLevel=["Luna Ascension EX - flashygoodness.mp3","Cheat Codes - Nitro Fun.mp3","Commando Steve - Bossfight.mp3","Oceanic Breeze - flashygoodness.mp3"]
+    levelData=[["Luna Ascension EX - flashygoodness.mp3","normal"],["Cheat Codes - Nitro Fun.mp3","normal"],["Commando Steve - Bossfight.mp3","normal"],["Oceanic Breeze - flashygoodness.mp3","normal"],["","boss"]]
 
     pygame.mixer.init()
     hit = pygame.mixer.Sound("sfx/hit.wav")
@@ -618,32 +628,35 @@ def main():
 
     
     for lvl in range(levelOn,len(levels)):
-        run_level(levels[lvl],GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, f"music/{musicLevel[lvl]}")
+        if levelData[lvl][1]=="normal":
+            run_level(levels[lvl],GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, f"music/{levelData[lvl][0]}")
+        elif levelData[lvl][1]=="boss":
+            boss_level(levels[lvl], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit)
         levelOn+=1
         if not lvl in levelComp:
             levelComp.append(lvl)
-    if levelOn==0:
-        run_level(levels[0], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Luna Ascension EX - flashygoodness.mp3")
-        # CUTSCENE HERE!!! (intro and panic)
-        levelOn=1
-        levelComp.append(0)
-    if levelOn==1:
-        run_level(levels[1], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Cheat Codes - Nitro Fun.mp3")
-        levelOn=2
-        levelComp.append(1)
-    if levelOn==2:
-        run_level(levels[2], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Commando Steve - Bossfight.mp3")
-        levelOn=3
-        levelComp.append(2)
-    if levelOn==3:
-        run_level(levels[3], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Oceanic Breeze - flashygoodness.mp3")
-        levelOn=10
-        levelComp.append(3)
-        # CUTSCENE HERE!!! (oh no, hes gonna get me)
-    if levelOn==10:
-        boss_level(levels[4], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit)
-        levelComp.append(4)
-        # CUTSCENE HERE!!! (the longest one, quaternius is saved!!!)
+    # if levelOn==0:
+    #     run_level(levels[0], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Luna Ascension EX - flashygoodness.mp3")
+    #     # CUTSCENE HERE!!! (intro and panic)
+    #     levelOn=1
+    #     levelComp.append(0)
+    # if levelOn==1:
+    #     run_level(levels[1], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Cheat Codes - Nitro Fun.mp3")
+    #     levelOn=2
+    #     levelComp.append(1)
+    # if levelOn==2:
+    #     run_level(levels[2], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Commando Steve - Bossfight.mp3")
+    #     levelOn=3
+    #     levelComp.append(2)
+    # if levelOn==3:
+    #     run_level(levels[3], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, "music/Oceanic Breeze - flashygoodness.mp3")
+    #     levelOn=10
+    #     levelComp.append(3)
+    #     # CUTSCENE HERE!!! (oh no, hes gonna get me)
+    # if levelOn==10:
+    #     boss_level(levels[4], GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit)
+    #     levelComp.append(4)
+    #     # CUTSCENE HERE!!! (the longest one, quaternius is saved!!!)
 
 
 

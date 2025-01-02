@@ -13,6 +13,7 @@ windowSurface = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), flags=pygam
 pygame.display.set_caption("Axion's Journey")
 
 def main():
+    brush_list=["B","E"," ","P","C","J","X","Z","F","N","O","K","L",";"]
     editing = True
 
     LEVELMANAGER = LevelManager()
@@ -21,7 +22,6 @@ def main():
     levels = LEVELMANAGER.load_all()
     if levels == []:
         levels.append(LEVELMANAGER.create_empty_level(30,30))
-    
 
     LEVELEDITOR = LevelEditor()
     blocksize = 20
@@ -50,6 +50,17 @@ def main():
                 if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
+                elif event.type == pygame.MOUSEWHEEL:
+                    brshid=brush_list.index(LEVELEDITOR.brush)
+                    # print(brshid)
+                    if event.y>0:
+                        if brshid>0:
+                            brshid-=1
+                        # print("",brshid)
+                    elif event.y<0:
+                        if brshid<len(brush_list)-1:
+                            brshid+=1
+                    LEVELEDITOR.change_brush(brush_list[brshid])
                 elif event.type == KEYDOWN:
                     if event.key == K_ESCAPE:
                         pygame.quit()
@@ -71,6 +82,7 @@ def main():
                         
 
                     # change brush
+                    
                     elif event.key == K_b:
                         LEVELEDITOR.change_brush("B")
                     elif event.key == K_e:
@@ -196,9 +208,13 @@ def main():
             
             elif LEVELEDITOR.brush == "O" or LEVELEDITOR.brush == "K" or LEVELEDITOR.brush == "L" or LEVELEDITOR.brush == ";":
                 cursor_color = (250, 250, 250)
+            pygame.draw.rect(windowSurface,cursor_color,cursor_box)
+            pygame.draw.rect(windowSurface, (0,0,0), cursor_box,width=2)
 
-            pygame.draw.rect(windowSurface, cursor_color, cursor_box)
-
+            pygame.draw.line(windowSurface, (0,0,0), (0,0), (level_width,0), width=2)
+            pygame.draw.line(windowSurface, (0,0,0), (level_width,0), (level_width,level_height), width=2)
+            pygame.draw.line(windowSurface, (0,0,0), (level_width,level_height), (level_height,0), width=2)
+            pygame.draw.line(windowSurface, (0,0,0), (level_height,0), (0,0), width=2)
 
             # LAST
             pygame.display.update()

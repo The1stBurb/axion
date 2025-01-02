@@ -214,7 +214,8 @@ class Level:
                 self.fog_idxes.append(idx)
             elif block == "N":
                 self.add_story_block(idx, width)
-
+            #B is normal block, P is player block, C is checkpoint, J is extra jump block, X is danger block, Z is exit block, F is fog block, N is story block,
+            # O is ^ wind, L is v wind, K is < wind, and ; is > wind 
             elif block == "O":
                 block_hitbox = pygame.Rect(0, 0, self.block_size, self.block_size)
                 self.block_object_list.append(WindBlock(idx%width, idx//width, block_hitbox, self.block_size, "up", idx))
@@ -761,6 +762,22 @@ class FogBlock(Block):
 
     def render(self, windowSurface, camera_pos):
         super().render(windowSurface, camera_pos)
+
+class InvisBlock(Block):
+    def __init__(self, x, y, hitbox, blocksize, idx):
+        super().__init__(x, y, (10,10,10), hitbox, blocksize, idx)
+        self.particle_timer = 10
+
+    def particles(self, level, camera_pos):
+        if self.particle_timer == 0:
+            block_above = level.level_dict["blocklist"][self.idx-level.level_dict["width"]]
+            if self.x*20 + 30 > camera_pos[0] and self.x*20 < camera_pos[0] + 610 and self.y*20 + 40 > camera_pos[1] and self.y*20 < camera_pos[1] + 620 and block_above != "X" and block_above != "B" and not self.idx in level.fog_idxes:
+                x = random.randint(self.x*20, self.x*20 + 17)
+                y = random.randint(self.y*20, self.y*20 + 10)
+                level.danger_particle(x, y)
+                self.particle_timer = 5
+        else:
+            self.particle_timer -= 1
 
 
 class TextBlock(Block):
