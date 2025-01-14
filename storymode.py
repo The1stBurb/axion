@@ -15,7 +15,7 @@ pygame.display.set_caption("Axion's Journey")
 currentCheck=(None,None)
 
 def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
-    global currentCheck
+    global currentCheck,pause
     level_color = (192, 253, 255)
 
     pygame.mixer.music.load(song)
@@ -50,7 +50,8 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
                     on_quit(player.checkpoint_x,player.checkpoint_y)
                     pygame.quit()
                     sys.exit()
-
+                if event.type==pygame.K_p:
+                    pause()
                 if event.key == K_r and player != None:
                     player.reset_to_checkpoint()
 
@@ -396,28 +397,43 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
             pygame.display.update()
             mainClock.tick(60)
 title_font = pygame.font.Font("fonts/Poxast-R9Jjl.ttf", 30)
+font=pygame.font.Font(None,15)
 COLOUR=(255,255,255)
 levelOn=0
-levelComp=[0]
+levelComp=[0,1]
 def on_quit(checkX,checkY):
     saveCode=(levelOn,(checkX,checkY),levelComp)
     pile.runPiler(saveCode)
     print("\n\n",saveCode)
 
 def fill(r,g=-1,b=0):
+    global COLOUR
     if g==-1:
-        r=b
-        r=g
+        b=g=r
     COLOUR=(r,g,b)
-def rect(self,x,y,w,h,col=(255,255,255)):
+def image(img,x,y):
+    windowSurface.blit(img,(x,y))
+def gitImg(path):
+    return pygame.image.load(path).convert_alpha()
+def resize(img,w,h):
+    return pygame.transform.scale(img,(w,h))
+def imgGit(path,w,h):
+    return resize(gitImg(path),w,h)
+def rect(x,y,w,h,col=(255,255,255)):
+    global COLOUR
     # print(col)
     pygame.draw.rect(windowSurface, COLOUR, pygame.Rect(x, y, w, h))
-def text(self,txt,x,y,col=(0,0,0)):
-    windowSurface.blit(title_font.render(COLOUR, True, col),(x,y))
-def quad(self,x1,y1,x2,y2,x3,y3,x4,y4,col=(255,255,255)):
+def text(txt,x,y,col=(0,0,0)):
+    global COLOUR
+    windowSurface.blit(font.render(txt, True, COLOUR),(x,y))
+def quad(x1,y1,x2,y2,x3,y3,x4,y4,col=(255,255,255)):
+    global COLOUR
     pygame.draw.polygon(windowSurface, COLOUR, [(x1,y1),(x2,y2),(x3,y3),(x4,y4),])
+level_bttn=imgGit("img\\level-button.png",50,50)
 def pause():
+    global levelOn, levelComp,currentCheck
     while True:
+        windowSurface.fill((255,255,255))
         for event in pygame.event.get():
             if event.type == QUIT:
                 on_quit(None,None)
@@ -426,11 +442,21 @@ def pause():
         mx,my=pygame.mouse.get_pos()
         for i in levelComp:
             if levelOn==i:
+                fill(0)
+                # print(COLOUR)
                 rect(18+i*55,18,54,54)
-            rect(20+i*55,20,50,50)
+                # print(COLOUR)
+            image(level_bttn,20+i*55,20)
+            fill(0)
+            text(f"Level: {i}",25+i*55,40)
             if mx>20+i*55 and mx<70+i*55 and my>20 and my<50:
-                levelOn=
-
+                levelOn=i
+        on_quit(None,None)
+        currentCheck=(None,None)
+        if mx>550 and my>550:
+            return
+        pygame.display.flip()
+        mainClock.tick(60)
 # on_quit(None,None)
 def on_start():
     global levelOn,currentCheck
