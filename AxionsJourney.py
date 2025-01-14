@@ -526,7 +526,6 @@ class PlayerBlock(Block):
         self.wind_push["down"] = self.get_tile_at(self.x, self.y, level) == "L" or self.get_tile_at(self.x, self.y+19.99, level) == "L" or self.get_tile_at(self.x+19.99, self.y, level) == "L" or self.get_tile_at(self.x+19.99, self.y+19.99, level) == "L"
         self.wind_push["left"] = self.get_tile_at(self.x, self.y, level) == "K" or self.get_tile_at(self.x, self.y+19.99, level) == "K" or self.get_tile_at(self.x+19.99, self.y, level) == "K" or self.get_tile_at(self.x+19.99, self.y+19.99, level) == "K"
         self.wind_push["right"] = self.get_tile_at(self.x, self.y, level) == ";" or self.get_tile_at(self.x, self.y+19.99, level) == ";" or self.get_tile_at(self.x+19.99, self.y, level) == ";" or self.get_tile_at(self.x+19.99, self.y+19.99, level) == ";"
-
     def get_in_fog(self, level, fog_event):
         if self.get_tile_num_at(self.x, self.y, level) in level.fog_idxes and self.get_tile_num_at(self.x, self.y+19.99, level) in level.fog_idxes and self.get_tile_num_at(self.x+19.99, self.y, level) in level.fog_idxes and self.get_tile_num_at(self.x+19.99, self.y+19.99, level) in level.fog_idxes:
             pygame.event.post(pygame.event.Event(fog_event))
@@ -565,6 +564,15 @@ class PlayerBlock(Block):
         if self.get_tile_at(self.x, self.y, level) == "X" or self.get_tile_at(self.x, self.y+19.99, level) == "X" or self.get_tile_at(self.x+19.99, self.y, level) == "X" or self.get_tile_at(self.x+19.99, self.y+19.99, level) == "X":
             pygame.event.post(pygame.event.Event(event))
             self.dead = 120
+    # def check_touching_bonce(self, level):
+    #     if self.get_tile_at(self.x, self.y, level) == "W":
+    #         self.velocity[]*=-0.9
+    #     elif self.get_tile_at(self.x, self.y+19.99, level) == "W":
+    #         self.velocity[]*=-0.9
+    #     elif self.get_tile_at(self.x+19.99, self.y, level) == "W":
+    #         self.velocity[]*=-0.9
+    #     elif self.get_tile_at(self.x+19.99, self.y+19.99, level) == "W":
+    #         self.velocity[]*=-0.9
 
     def check_exit(self, level, event):
         if self.get_tile_at(self.x, self.y, level) == "Z" or self.get_tile_at(self.x, self.y+19.99, level) == "Z" or self.get_tile_at(self.x+19.99, self.y, level) == "Z" or self.get_tile_at(self.x+19.99, self.y+19.99, level) == "Z":
@@ -603,6 +611,9 @@ class RegBlock(Block):
     def __init__(self, x, y, hitbox, blocksize, idx):
         super().__init__(x, y, (0,0,0), hitbox, blocksize, idx)
 
+class BonceBlock(Block):
+    def __init__(self, x, y, hitbox, blocksize, idx):
+        super().__init__(x, y, (50,200,50), hitbox, blocksize, idx)
 class DangerBlock(Block):
     def __init__(self, x, y, hitbox, blocksize, idx):
         super().__init__(x, y, (255,40,121), hitbox, blocksize, idx)

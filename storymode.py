@@ -395,14 +395,42 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
             # LAST
             pygame.display.update()
             mainClock.tick(60)
-
-    
+title_font = pygame.font.Font("fonts/Poxast-R9Jjl.ttf", 30)
+COLOUR=(255,255,255)
 levelOn=0
-levelComp=[]
+levelComp=[0]
 def on_quit(checkX,checkY):
     saveCode=(levelOn,(checkX,checkY),levelComp)
     pile.runPiler(saveCode)
     print("\n\n",saveCode)
+
+def fill(r,g=-1,b=0):
+    if g==-1:
+        r=b
+        r=g
+    COLOUR=(r,g,b)
+def rect(self,x,y,w,h,col=(255,255,255)):
+    # print(col)
+    pygame.draw.rect(windowSurface, COLOUR, pygame.Rect(x, y, w, h))
+def text(self,txt,x,y,col=(0,0,0)):
+    windowSurface.blit(title_font.render(COLOUR, True, col),(x,y))
+def quad(self,x1,y1,x2,y2,x3,y3,x4,y4,col=(255,255,255)):
+    pygame.draw.polygon(windowSurface, COLOUR, [(x1,y1),(x2,y2),(x3,y3),(x4,y4),])
+def pause():
+    while True:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                on_quit(None,None)
+                pygame.quit()
+                sys.exit()
+        mx,my=pygame.mouse.get_pos()
+        for i in levelComp:
+            if levelOn==i:
+                rect(18+i*55,18,54,54)
+            rect(20+i*55,20,50,50)
+            if mx>20+i*55 and mx<70+i*55 and my>20 and my<50:
+                levelOn=
+
 # on_quit(None,None)
 def on_start():
     global levelOn,currentCheck
@@ -495,7 +523,7 @@ def main():
     
 
 
-    title_font = pygame.font.Font("fonts/Poxast-R9Jjl.ttf", 30)
+    
     title_txt = title_font.render("Axion's Journey", False, (10, 10, 150))
     title_rect = title_txt.get_rect()
     title_rect.center = (300, 650)

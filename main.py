@@ -13,7 +13,7 @@ windowSurface = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), flags=pygam
 pygame.display.set_caption("Axion's Journey")
 
 def main():
-    brush_list=["B","E"," ","P","C","J","X","Z","F","N","O","K","L",";"]
+    brush_list=["B","E"," ","P","C","J","X","Z","F","N","O","K","L",";","W"]
     editing = True
 
     LEVELMANAGER = LevelManager()
@@ -208,6 +208,8 @@ def main():
             
             elif LEVELEDITOR.brush == "O" or LEVELEDITOR.brush == "K" or LEVELEDITOR.brush == "L" or LEVELEDITOR.brush == ";":
                 cursor_color = (250, 250, 250)
+            elif LEVELEDITOR.brush=="W":
+                cursor_color=(50,200,50)
             pygame.draw.rect(windowSurface,cursor_color,cursor_box)
             pygame.draw.rect(windowSurface, (0,0,0), cursor_box,width=2)
 
