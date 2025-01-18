@@ -15,7 +15,7 @@ pygame.display.set_caption("Axion's Journey")
 currentCheck=(None,None)
 
 def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
-    global currentCheck,pause
+    global currentCheck,pause,death_count,title_font
     level_color = (192, 253, 255)
 
     pygame.mixer.music.load(song)
@@ -82,6 +82,7 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
                 level.death_particles(player)
                 GAME.camera.screenshake_intensity = 18
                 hit.play()
+                death_count+=1
 
             elif event.type == FINISH:
                 player = None
@@ -180,7 +181,7 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
                 block.message.draw_text(block.drawing_text, windowSurface)
             else:
                 block.drawing_text = 0
-
+        windowSurface.blit(title_font.render(f"Deaths: {death_count}", True, COLOUR),(0,0))
         BLACKOUT.draw(windowSurface)
 
         # LAST
@@ -191,7 +192,7 @@ def run_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, hit, song):
 
 
 def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
-    global currentCheck
+    global currentCheck,death_count
     done = False
 
     while not done:
@@ -270,7 +271,7 @@ def boss_level(level, GAME, BLACKOUT, CHECKPOINT, DEATH, FINISH, FOGGED, hit):
                     level.death_particles(player)
                     GAME.camera.screenshake_intensity = 18
                     hit.play()
-
+                    death_count+=1
                 elif event.type == FINISH:
                     player = None
                     fadeout_frames = 300
@@ -458,6 +459,7 @@ def pause():
         pygame.display.flip()
         mainClock.tick(60)
 # on_quit(None,None)
+death_count=0
 def on_start():
     global levelOn,currentCheck
     saveCode=pile.runPiler()
